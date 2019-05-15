@@ -7,4 +7,12 @@
         android:layout_height="match_parent"
         tools:context=".map.MapActivity">
 
+    <fragment
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:name="commanderpepper.getpizza.map.MapView"
+            android:id="@+id/map_fragment"
+            android:layout_marginTop="0dp"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="0dp"/>
 </android.support.constraint.ConstraintLayout>
