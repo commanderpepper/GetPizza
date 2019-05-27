@@ -20,11 +20,14 @@ import commanderpepper.getpizza.R
 
 class GoogleMapView : Fragment() {
     private lateinit var googleMap: GoogleMap
-    private lateinit var mapView : MapView
+    private lateinit var mapView: MapView
+    private lateinit var viewmodel : MapViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
+
+        viewmodel = MapViewModel()
 
         val rootView = inflater.inflate(R.layout.fragment_google_map_view, container, false)
 
@@ -57,16 +60,19 @@ class GoogleMapView : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        viewmodel.onResume()
         mapView.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        mapView.onResume()
+        viewmodel.onPause()
+        mapView.onPause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        viewmodel.onResume()
         mapView.onDestroy()
     }
 }
