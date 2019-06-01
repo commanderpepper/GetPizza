@@ -1,4 +1,4 @@
-package SearchResults
+package commanderpepper.getpizza.models
 
 import com.squareup.moshi.Json
 

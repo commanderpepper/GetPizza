@@ -60,19 +60,19 @@ class GoogleMapView : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewmodel.onResume()
+//        viewmodel.onResume()
         mapView.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        viewmodel.onPause()
+//        viewmodel.onPause()
         mapView.onPause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        viewmodel.onResume()
+//        viewmodel.onResume()
         mapView.onDestroy()
     }
 }
