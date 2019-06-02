@@ -46,11 +46,11 @@ class GoogleMapView : Fragment() {
             googleMap = mMap
 
             // For dropping a marker at a point on the Map
-            val sydney = LatLng(-34.0, 151.0)
+            val sydney = LatLng(40.8713000000, -73.4265000000)
             googleMap.addMarker(MarkerOptions().position(sydney).title("Marker Title").snippet("Marker Description"))
 
             // For zooming automatically to the location of the marker
-            val cameraPosition = CameraPosition.Builder().target(sydney).zoom(5f).build()
+            val cameraPosition = CameraPosition.Builder().target(sydney).zoom(18f).build()
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
         }
 
