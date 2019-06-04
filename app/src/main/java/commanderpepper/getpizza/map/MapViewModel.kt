@@ -1,6 +1,7 @@
 package commanderpepper.getpizza.map
 
 import commanderpepper.getpizza.BaseViewModel
+import io.reactivex.Observable
 
 class MapViewModel : BaseViewModel {
 
@@ -18,6 +19,10 @@ class MapViewModel : BaseViewModel {
 
     override fun onDestroy() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    fun getLatLngObservable() : Observable<Pair<Double, Double>> {
+
     }
 
 }
