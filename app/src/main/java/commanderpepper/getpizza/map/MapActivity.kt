@@ -31,12 +31,13 @@ class MapActivity : AppCompatActivity() {
         performSearch()
     }
 
-    private fun performSearch(){
-        val latlon = mutableListOf<Pair<Double,Double>>()
-        disposable = zomatoService.performSearch(40.76,-73.5)
+    private fun performSearch() {
+        val latlon = mutableListOf<Pair<Double, Double>>()
+        disposable = zomatoService.performSearch(40.76, -73.5)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({result -> Log.d("Humza", result.toString())})
+//            .map { it.restaurants }
+            .subscribe { result -> Log.d("Humza", result.toString()) }
         disposable!!.dispose()
     }
 
