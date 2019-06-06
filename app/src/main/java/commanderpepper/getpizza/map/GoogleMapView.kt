@@ -3,6 +3,7 @@ package commanderpepper.getpizza.map
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,11 +18,18 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.GoogleMap
 
 import commanderpepper.getpizza.R
+import commanderpepper.getpizza.models.Location
+import io.reactivex.Observer
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 
 class GoogleMapView : Fragment() {
     private lateinit var googleMap: GoogleMap
     private lateinit var mapView: MapView
     private lateinit var viewmodel : MapViewModel
+    val compositeDisposable = CompositeDisposable()
+
+    //TODO ADD DATA BINDING BETWEEN VIEW and VIEWMODEL
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -55,6 +63,7 @@ class GoogleMapView : Fragment() {
         }
 
 
+
         return rootView
     }
 
@@ -68,11 +77,33 @@ class GoogleMapView : Fragment() {
         super.onPause()
 //        viewmodel.onPause()
         mapView.onPause()
+        compositeDisposable.dispose()
     }
 
     override fun onDestroy() {
         super.onDestroy()
 //        viewmodel.onResume()
         mapView.onDestroy()
+        compositeDisposable.dispose()
+    }
+
+    inner class LocationObserver : Observer<Location> {
+        override fun onComplete() {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun onSubscribe(d: Disposable) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun onNext(location: Location) {
+            Log.d("Humza", "${location.latitude} ${location.longitude}"  )
+        }
+
+        override fun onError(e: Throwable) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
     }
 }
+

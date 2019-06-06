@@ -36,7 +36,7 @@ class MapActivity : AppCompatActivity() {
         disposable = zomatoService.performSearch(40.76, -73.5)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-//            .map { it.restaurants }
+//            .map { searchResults -> searchResults.restaurants.map { it.restaurant.location.longitude to it.restaurant.location.latitude } }
             .subscribe { result -> Log.d("Humza", result.toString()) }
         disposable!!.dispose()
     }
