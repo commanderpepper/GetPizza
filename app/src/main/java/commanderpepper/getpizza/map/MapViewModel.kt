@@ -17,9 +17,9 @@ class MapViewModel {
     }
     var observable: Observable<SearchResults>? = null
 
-    fun getLatLngObservable(lat: Double, lng: Double): Observable<List<Pair<String, String>>> {
+    fun getLatLngObservable(lat: Double, lng: Double): Observable<List<Pair<Double, Double>>> {
         return zomatoService.performSearch(lat, lng)
-            .map { searchResults -> searchResults.restaurants.map { it.restaurant.location.latitude to it.restaurant.location.longitude } }
+            .map { searchResults -> searchResults.restaurants.map { it.restaurant.location.latitude.toDouble() to it.restaurant.location.longitude.toDouble() } }
     }
 
 

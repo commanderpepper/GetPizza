@@ -28,7 +28,7 @@ class MapActivity : AppCompatActivity() {
         fragmentTransaction.add(R.id.map_container, pizzaMap)
         fragmentTransaction.commit()
 
-        performSearch()
+//        performSearch()
     }
 
     private fun performSearch() {
