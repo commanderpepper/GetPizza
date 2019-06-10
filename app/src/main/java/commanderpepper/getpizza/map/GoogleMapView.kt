@@ -22,10 +22,11 @@ import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 
 class GoogleMapView : Fragment() {
-    private var googleMap: GoogleMap? = null
+    //    private var googleMap: GoogleMap? = null
     private lateinit var mapView: MapView
     private lateinit var viewmodel: MapViewModel
     val compositeDisposable = CompositeDisposable()
@@ -57,26 +58,15 @@ class GoogleMapView : Fragment() {
             e.printStackTrace()
         }
 
-//        mapView.getMapAsync { mMap ->
-//            googleMap = mMap
-//
-//            // For dropping a marker at a point on the Map
-//            val sydney = LatLng(40.8426000000, -73.2883000000)
-//            googleMap.addMarker(MarkerOptions().position(sydney).title("Marker Title").snippet("Marker Description"))
-//
-//            // For zooming automatically to the location of the marker
-//            val cameraPosition = CameraPosition.Builder().target(sydney).zoom(18f).build()
-//            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-//        }
+        val observer = LocationObserver(mapView)
 
-//        compositeDisposable.addAll(mapViewModel.getLatLngObservable(40.76, -73.5).subscribe(LocationObserver(mapView,googleMap)))
-
-
-
-        mapViewModel.getLatLngObservable(40.76, -73.5)
-            .subscribeOn(Schedulers.io())
+        val dis = mapViewModel.getLatLngObservable(40.76, -73.5)
+        dis.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(LocationObserver(mapView))
+            .subscribe(observer)
+
+
+        compositeDisposable.add(observer)
 
         return rootView
     }
@@ -91,7 +81,6 @@ class GoogleMapView : Fragment() {
         super.onPause()
 //        viewmodel.onPause()
         mapView.onPause()
-//        compositeDisposable.dispose()
     }
 
     override fun onDestroy() {
@@ -102,20 +91,16 @@ class GoogleMapView : Fragment() {
     }
 
     inner class LocationObserver(val mmapView: MapView) :
-        Observer<List<Pair<Double, Double>>> {
+        DisposableObserver<List<Pair<Double, Double>>>() {
 
         override fun onComplete() {
-            print("hi")
-        }
-
-        override fun onSubscribe(d: Disposable) {
             print("hi")
         }
 
         override fun onNext(t: List<Pair<Double, Double>>) {
             Log.d("Humza", t.toString())
             mmapView.getMapAsync { map ->
-//                googleMap = map
+                //                googleMap = map
                 t.forEach {
                     map.addMarker(
                         MarkerOptions().position(
