@@ -58,10 +58,10 @@ class GoogleMapView : Fragment() {
             e.printStackTrace()
         }
 
-        val observer = LocationObserver(mapView)
+        val observer = RestaurantObserver(mapView)
 
-        val dis = mapViewModel.getLatLngObservable(40.76, -73.5)
-        dis.subscribeOn(Schedulers.io())
+        val dis = mapViewModel.getRestaurants(40.76, -73.5)
+        dis!!.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(observer)
 
@@ -122,5 +122,40 @@ class GoogleMapView : Fragment() {
         }
 
     }
+
+    inner class RestaurantObserver(val mapview: MapView) :
+        DisposableObserver<List<Pair<String, Pair<Double, Double>>>>() {
+
+        override fun onComplete() {
+            print("hi")
+        }
+
+        override fun onNext(t: List<Pair<String, Pair<Double, Double>>>) {
+            Log.d("Humza", t.toString())
+            mapview.getMapAsync { map ->
+                t.forEach { reta ->
+                    map.addMarker(
+                        MarkerOptions().position(
+                            LatLng(
+                                reta.second.first,
+                                reta.second.second
+                            )
+                        ).title(reta.first)
+                    )
+                }
+                val cameraPosition =
+                    CameraPosition.Builder().target(LatLng(t.first().second.first, t.first().second.second)).zoom(11f)
+                        .build()
+                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+            }
+
+        }
+
+        override fun onError(e: Throwable) {
+            print("hi")
+        }
+
+    }
+
 }
 
