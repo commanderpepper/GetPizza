@@ -18,6 +18,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.GoogleMap
 
 import commanderpepper.getpizza.R
+import commanderpepper.getpizza.models.MapHelper
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -34,10 +35,10 @@ class GoogleMapView : Fragment() {
 
     //TODO ADD DATA BINDING BETWEEN VIEW and VIEWMODEL
 
-    init {
+//    init {
 //        compositeDisposable.add(mapViewModel.getLatLngObservable(40.8426000000, -73.2883000000).subscribe())
 //        compositeDisposable.dispose()
-    }
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -58,10 +59,10 @@ class GoogleMapView : Fragment() {
             e.printStackTrace()
         }
 
-        val observer = RestaurantObserver(mapView)
+        val observer = RestaurantInfoObserver(mapView)
 
-        val dis = mapViewModel.getRestaurants(40.76, -73.5)
-        dis!!.subscribeOn(Schedulers.io())
+        val dis = mapViewModel.getRestaurantInfo(40.7128, -74.0060)
+        dis.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(observer)
 
@@ -149,6 +150,40 @@ class GoogleMapView : Fragment() {
                 map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
             }
 
+        }
+
+        override fun onError(e: Throwable) {
+            print("hi")
+        }
+
+    }
+
+    inner class RestaurantInfoObserver(val mapview: MapView) : DisposableObserver<List<MapHelper>>() {
+        override fun onComplete() {
+            print("hi")
+        }
+
+        override fun onNext(t: List<MapHelper>) {
+            mapview.getMapAsync { map ->
+                t.forEach { mapHelper ->
+                    map.addMarker(
+                        MarkerOptions().position(LatLng(mapHelper.latitude, mapHelper.longitude)).title(
+                            mapHelper.name
+                        )
+                    )
+
+                }
+                map.animateCamera(
+                    CameraUpdateFactory.newCameraPosition(
+                        CameraPosition.Builder().target(
+                            LatLng(
+                                t.first().latitude,
+                                t.first().longitude
+                            )
+                        ).zoom(11f).build()
+                    )
+                )
+            }
         }
 
         override fun onError(e: Throwable) {

@@ -18,7 +18,7 @@ interface ZomatoService {
     @Headers("user-key:${Constants.API_KEY}")
     @GET("search")
     fun performSearch(
-        @Query("lat") lat: Double, @Query("lon") lon: Double, @Query("count") count: Int = 10,
+        @Query("lat") lat: Double, @Query("lon") lon: Double, @Query("count") count: Int = 20,
         @Query("cuisines") cuisines: Int = ZomatoConstants.PIZZA_CUISINE_ID
     )
             : Observable<SearchResults>

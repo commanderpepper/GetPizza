@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import commanderpepper.getpizza.BaseViewModel
 import commanderpepper.getpizza.models.Location
+import commanderpepper.getpizza.models.MapHelper
 import commanderpepper.getpizza.models.SearchResults
 import commanderpepper.getpizza.retrofit.ZomatoService
 import io.reactivex.Observable
@@ -25,6 +26,20 @@ class MapViewModel {
     fun getRestaurants(lat: Double, lng: Double): Observable<List<Pair<String, Pair<Double, Double>>>>? {
         return zomatoService.performSearch(lat, lng)
             .map { searchResults -> searchResults.restaurants.map { it.restaurant.name to (it.restaurant.location.latitude.toDouble() to it.restaurant.location.longitude.toDouble()) } }
+    }
+
+    fun getRestaurantInfo(lat: Double, lng: Double): Observable<List<MapHelper>> {
+        return zomatoService.performSearch(lat, lng)
+            .map { searchResults ->
+                searchResults.restaurants.map {
+                    MapHelper(
+                        it.restaurant.location.latitude.toDouble(),
+                        it.restaurant.location.longitude.toDouble(),
+                        it.restaurant.name
+                    )
+                }
+            }
+
     }
 
 
