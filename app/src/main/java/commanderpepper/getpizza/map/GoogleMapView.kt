@@ -27,18 +27,20 @@ import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 
 class GoogleMapView : Fragment() {
-    //    private var googleMap: GoogleMap? = null
     private lateinit var mapView: MapView
     private lateinit var viewmodel: MapViewModel
     val compositeDisposable = CompositeDisposable()
     val mapViewModel = MapViewModel()
 
+    private var latitude: Double = 40.7128
+    private var longitude: Double = -74.0060
+
     //TODO ADD DATA BINDING BETWEEN VIEW and VIEWMODEL
 
-//    init {
-//        compositeDisposable.add(mapViewModel.getLatLngObservable(40.8426000000, -73.2883000000).subscribe())
-//        compositeDisposable.dispose()
-//    }
+    init {
+        latitude = arguments!!.getDouble("latitude")
+        longitude = arguments!!.getDouble("longitude")
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -61,7 +63,7 @@ class GoogleMapView : Fragment() {
 
         val observer = RestaurantInfoObserver(mapView)
 
-        val dis = mapViewModel.getRestaurantInfo(40.7128, -74.0060)
+        val dis = mapViewModel.getRestaurantInfo(latitude, longitude)
         dis.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(observer)
