@@ -37,10 +37,10 @@ class GoogleMapView : Fragment() {
 
     //TODO ADD DATA BINDING BETWEEN VIEW and VIEWMODEL
 
-    init {
-        latitude = arguments!!.getDouble("latitude")
-        longitude = arguments!!.getDouble("longitude")
-    }
+//    init {
+//        latitude = arguments!!.getDouble("latitude")
+//        longitude = arguments!!.getDouble("longitude")
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
