@@ -5,12 +5,10 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Bundle
-import android.support.constraint.ConstraintLayout
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
 import commanderpepper.getpizza.R
@@ -34,28 +32,20 @@ class MapActivity : AppCompatActivity() {
                 this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), MY_PERMISSIONS_REQUEST_FINE_LOCATION
             )
         } else {
-
-            //TODO call some method or object to get a location and / or instantiate the view (fragment)
             setUpGoogleMapView()
             Log.d("Humza", "$longitude $latitude")
         }
-
-
     }
 
     @SuppressLint("MissingPermission")
     fun setUpGoogleMapView() {
         val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        longitude = location.longitude
-        latitude = location.latitude
 
-        val bundle = Bundle()
-        bundle.putDouble("latitude", latitude)
-        bundle.putDouble("longitude", longitude)
-
-        val pizzaMap = GoogleMapView().apply { arguments = bundle }
-//            pizzaMap.arguments = bundle
+        val pizzaMap = GoogleMapView().apply {
+            this.lm = lm
+            this.location = location
+        }
 
         val fragmentTransaction = supportFragmentManager.beginTransaction()
         fragmentTransaction.add(R.id.map_container, pizzaMap)
@@ -73,7 +63,7 @@ class MapActivity : AppCompatActivity() {
                         text = getText(R.string.location_permission_text)
                         gravity = 1
                     }
-                    view.text = getText(R.string.location_permission_text)
+//                    view.text = getText(R.string.location_permission_text)
                     frmLayout.addView(view)
                     println("darn")
                 }

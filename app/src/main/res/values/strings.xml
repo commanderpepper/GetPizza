@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Get Pizza</string>
+    <string name="location_permission_text">Location permission is needed</string>
 </resources>

@@ -1,8 +1,15 @@
 package commanderpepper.getpizza.map
 
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -29,8 +36,10 @@ import io.reactivex.schedulers.Schedulers
 class GoogleMapView : Fragment() {
     private lateinit var mapView: MapView
     private lateinit var viewmodel: MapViewModel
-    val compositeDisposable = CompositeDisposable()
-    val mapViewModel = MapViewModel()
+    var lm: LocationManager? = null
+    var location: Location? = null
+    private val compositeDisposable = CompositeDisposable()
+    private val mapViewModel = MapViewModel()
 
     private var latitude: Double = 40.7128
     private var longitude: Double = -74.0060
@@ -46,6 +55,15 @@ class GoogleMapView : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
 
+        Log.d("Location", location.toString())
+        Log.d("Location", lm.toString())
+
+        setLattitude()
+        setLongitude()
+
+        Log.d("Location", latitude.toString())
+        Log.d("Location", longitude.toString())
+
         viewmodel = MapViewModel()
 
         val rootView = inflater.inflate(R.layout.fragment_google_map_view, container, false)
@@ -60,6 +78,7 @@ class GoogleMapView : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
 
         val observer = RestaurantInfoObserver(mapView)
 
@@ -93,71 +112,17 @@ class GoogleMapView : Fragment() {
         compositeDisposable.dispose()
     }
 
-    inner class LocationObserver(val mmapView: MapView) :
-        DisposableObserver<List<Pair<Double, Double>>>() {
-
-        override fun onComplete() {
-            print("hi")
-        }
-
-        override fun onNext(t: List<Pair<Double, Double>>) {
-            Log.d("Humza", t.toString())
-            mmapView.getMapAsync { map ->
-                //                googleMap = map
-                t.forEach {
-                    map.addMarker(
-                        MarkerOptions().position(
-                            LatLng(
-                                it.first,
-                                it.second
-                            )
-                        ).title("Marker Title").snippet("Marker Description")
-                    )
-                }
-                val cameraPosition =
-                    CameraPosition.Builder().target(LatLng(t.first().first, t.first().second)).zoom(10f).build()
-                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-            }
-        }
-
-        override fun onError(e: Throwable) {
-            print("hi")
-        }
-
+    fun setLongitude() {
+        longitude = location!!.longitude
     }
 
-    inner class RestaurantObserver(val mapview: MapView) :
-        DisposableObserver<List<Pair<String, Pair<Double, Double>>>>() {
+    fun setLattitude() {
+        latitude = location!!.latitude
+    }
 
-        override fun onComplete() {
-            print("hi")
-        }
-
-        override fun onNext(t: List<Pair<String, Pair<Double, Double>>>) {
-            Log.d("Humza", t.toString())
-            mapview.getMapAsync { map ->
-                t.forEach { reta ->
-                    map.addMarker(
-                        MarkerOptions().position(
-                            LatLng(
-                                reta.second.first,
-                                reta.second.second
-                            )
-                        ).title(reta.first)
-                    )
-                }
-                val cameraPosition =
-                    CameraPosition.Builder().target(LatLng(t.first().second.first, t.first().second.second)).zoom(11f)
-                        .build()
-                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-            }
-
-        }
-
-        override fun onError(e: Throwable) {
-            print("hi")
-        }
-
+    @SuppressLint("MissingPermission")
+    fun updateLocation() {
+        location = lm!!.getLastKnownLocation(LocationManager.GPS_PROVIDER)
     }
 
     inner class RestaurantInfoObserver(val mapview: MapView) : DisposableObserver<List<MapHelper>>() {
