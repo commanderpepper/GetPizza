@@ -35,6 +35,7 @@ import io.reactivex.schedulers.Schedulers
 
 class GoogleMapView : Fragment() {
     private lateinit var mapView: MapView
+
     private lateinit var viewmodel: MapViewModel
     var lm: LocationManager? = null
     var location: Location? = null
@@ -80,13 +81,35 @@ class GoogleMapView : Fragment() {
         }
 
 
-        val observer = RestaurantInfoObserver(mapView)
+        var observer = RestaurantInfoObserver(mapView)
 
-        val dis = mapViewModel.getRestaurantInfo(latitude, longitude)
+        var dis = mapViewModel.getRestaurantInfo(latitude, longitude)
         dis.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(observer)
 
+        mapView.getMapAsync { googleMap ->
+            googleMap.setOnMapClickListener {
+                Log.d("Map", "$it")
+                latitude = it.latitude
+                longitude = it.longitude
+
+                observer = RestaurantInfoObserver(mapView)
+
+                dis = mapViewModel.getRestaurantInfo(latitude, longitude)
+                dis.subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(observer)
+
+                compositeDisposable.add(observer)
+            }
+        }
+
+//        mapView.getMapAsync {
+//            it.setOnMapClickListener {
+//                dis =
+//            }
+//        }
 
         compositeDisposable.add(observer)
 
@@ -125,6 +148,7 @@ class GoogleMapView : Fragment() {
         location = lm!!.getLastKnownLocation(LocationManager.GPS_PROVIDER)
     }
 
+
     inner class RestaurantInfoObserver(val mapview: MapView) : DisposableObserver<List<MapHelper>>() {
         override fun onComplete() {
             print("hi")
@@ -132,6 +156,7 @@ class GoogleMapView : Fragment() {
 
         override fun onNext(t: List<MapHelper>) {
             mapview.getMapAsync { map ->
+                Log.d("Map", "This is a test")
                 t.forEach { mapHelper ->
                     map.addMarker(
                         MarkerOptions().position(LatLng(mapHelper.latitude, mapHelper.longitude)).title(
@@ -147,7 +172,7 @@ class GoogleMapView : Fragment() {
                                 t.first().latitude,
                                 t.first().longitude
                             )
-                        ).zoom(11f).build()
+                        ).zoom(12f).build()
                     )
                 )
             }
