@@ -81,33 +81,29 @@ class GoogleMapView : Fragment() {
         }
 
 
-        var observer = RestaurantInfoObserver(mapView)
-
-        var dis = mapViewModel.getRestaurantInfo(latitude, longitude)
+//        var observer = RestaurantInfoObserver(mapView)
+        var observer = RestaurantMarkers(latitude, longitude, mapView)
+        var dis = mapViewModel.getPizzaMapMarkers(latitude, longitude)
         dis.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(observer)
 
-        mapView.getMapAsync { googleMap ->
-            googleMap.setOnMapClickListener {
-                Log.d("Map", "$it")
-                latitude = it.latitude
-                longitude = it.longitude
 
-                observer = RestaurantInfoObserver(mapView)
-
-                dis = mapViewModel.getRestaurantInfo(latitude, longitude)
-                dis.subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(observer)
-
-                compositeDisposable.add(observer)
-            }
-        }
-
-//        mapView.getMapAsync {
-//            it.setOnMapClickListener {
-//                dis =
+//        mapView.getMapAsync { googleMap ->
+//            googleMap.clear()
+//            googleMap.setOnMapClickListener {
+//                Log.d("Map", "$it")
+//                latitude = it.latitude
+//                longitude = it.longitude
+//
+//                observer = RestaurantInfoObserver(mapView)
+//
+//                dis = mapViewModel.getRestaurantInfo(latitude, longitude)
+//                dis.subscribeOn(Schedulers.io())
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(observer)
+//
+//                compositeDisposable.add(observer)
 //            }
 //        }
 
@@ -156,6 +152,7 @@ class GoogleMapView : Fragment() {
 
         override fun onNext(t: List<MapHelper>) {
             mapview.getMapAsync { map ->
+                map.clear()
                 Log.d("Map", "This is a test")
                 t.forEach { mapHelper ->
                     map.addMarker(
@@ -163,7 +160,6 @@ class GoogleMapView : Fragment() {
                             mapHelper.name
                         )
                     )
-
                 }
                 map.animateCamera(
                     CameraUpdateFactory.newCameraPosition(
@@ -173,6 +169,38 @@ class GoogleMapView : Fragment() {
                                 t.first().longitude
                             )
                         ).zoom(12f).build()
+                    )
+                )
+            }
+        }
+
+        override fun onError(e: Throwable) {
+            print("hi")
+        }
+
+    }
+
+    inner class RestaurantMarkers(val lat: Double, val lon: Double, val mapview: MapView) :
+        DisposableObserver<MapHelper>() {
+        override fun onComplete() {
+            mapview.getMapAsync { map ->
+                map.animateCamera(
+                    CameraUpdateFactory.newCameraPosition(
+                        CameraPosition.Builder().target(
+                            LatLng(
+                                lat, lon
+                            )
+                        ).zoom(12.5f).build()
+                    )
+                )
+            }
+        }
+
+        override fun onNext(t: MapHelper) {
+            mapview.getMapAsync { map ->
+                map.addMarker(
+                    MarkerOptions().position(LatLng(t.latitude, t.longitude)).title(
+                        t.name
                     )
                 )
             }
