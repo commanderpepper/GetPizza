@@ -33,10 +33,17 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 
-class GoogleMapView : Fragment() {
-    private lateinit var mapView: MapView
+class GoogleMapView : Fragment(),
+    GoogleMap.OnCameraMoveStartedListener,
+    GoogleMap.OnCameraMoveListener,
+    GoogleMap.OnCameraMoveCanceledListener,
+    GoogleMap.OnCameraIdleListener,
+    OnMapReadyCallback {
 
+    private lateinit var mapView: MapView
     private lateinit var viewmodel: MapViewModel
+    private var googleMap: GoogleMap? = null
+
     var lm: LocationManager? = null
     var location: Location? = null
     private val compositeDisposable = CompositeDisposable()
@@ -74,6 +81,8 @@ class GoogleMapView : Fragment() {
 
         mapView.onResume()
 
+        mapView.getMapAsync(this)
+
         try {
             MapsInitializer.initialize(activity!!.applicationContext)
         } catch (e: Exception) {
@@ -87,12 +96,39 @@ class GoogleMapView : Fragment() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(observer)
 
-
-
         compositeDisposable.add(observer)
         return rootView
     }
-    
+
+    override fun onMapReady(map: GoogleMap?) {
+        googleMap = map
+
+        googleMap!!.setOnCameraIdleListener(this)
+        googleMap!!.setOnCameraMoveStartedListener(this)
+        googleMap!!.setOnCameraMoveListener(this)
+        googleMap!!.setOnCameraMoveCanceledListener(this)
+    }
+
+    override fun onCameraMove() {
+        val cLat: Double = 0.0
+        val cLon: Double = 0.0
+
+        Log.d("Camera Event", "On Camera Move")
+        Log.d("Location Update", googleMap!!.cameraPosition.target.toString())
+    }
+
+    override fun onCameraMoveStarted(reason: Int) {
+        Log.d("Camera Event", "On Camera Move Stated $reason")
+    }
+
+    override fun onCameraMoveCanceled() {
+        Log.d("Camera Event", "On Camera Move Canceled")
+    }
+
+    override fun onCameraIdle() {
+        Log.d("Camera Event", "On Camera Idle")
+    }
+
     override fun onResume() {
         super.onResume()
 //        viewmodel.onResume()
@@ -124,7 +160,6 @@ class GoogleMapView : Fragment() {
     fun updateLocation() {
         location = lm!!.getLastKnownLocation(LocationManager.GPS_PROVIDER)
     }
-
 
     inner class RestaurantInfoObserver(val mapview: MapView) : DisposableObserver<List<MapHelper>>() {
         override fun onComplete() {
