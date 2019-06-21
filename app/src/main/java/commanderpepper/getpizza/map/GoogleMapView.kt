@@ -80,8 +80,7 @@ class GoogleMapView : Fragment() {
             e.printStackTrace()
         }
 
-
-//        var observer = RestaurantInfoObserver(mapView)
+        // This is the observer which will subscribe to the observable
         var observer = RestaurantMarkers(latitude, longitude, mapView)
         var dis = mapViewModel.getPizzaMapMarkers(latitude, longitude)
         dis.subscribeOn(Schedulers.io())
@@ -89,29 +88,11 @@ class GoogleMapView : Fragment() {
             .subscribe(observer)
 
 
-//        mapView.getMapAsync { googleMap ->
-//            googleMap.clear()
-//            googleMap.setOnMapClickListener {
-//                Log.d("Map", "$it")
-//                latitude = it.latitude
-//                longitude = it.longitude
-//
-//                observer = RestaurantInfoObserver(mapView)
-//
-//                dis = mapViewModel.getRestaurantInfo(latitude, longitude)
-//                dis.subscribeOn(Schedulers.io())
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .subscribe(observer)
-//
-//                compositeDisposable.add(observer)
-//            }
-//        }
 
         compositeDisposable.add(observer)
-
         return rootView
     }
-
+    
     override fun onResume() {
         super.onResume()
 //        viewmodel.onResume()
@@ -207,7 +188,17 @@ class GoogleMapView : Fragment() {
         }
 
         override fun onError(e: Throwable) {
-            print("hi")
+            mapview.getMapAsync { map ->
+                map.animateCamera(
+                    CameraUpdateFactory.newCameraPosition(
+                        CameraPosition.Builder().target(
+                            LatLng(
+                                lat, lon
+                            )
+                        ).zoom(12.5f).build()
+                    )
+                )
+            }
         }
 
     }
