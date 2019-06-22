@@ -32,6 +32,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
+import java.lang.Math.abs
 
 class GoogleMapView : Fragment(),
     GoogleMap.OnCameraMoveStartedListener,
@@ -51,13 +52,6 @@ class GoogleMapView : Fragment(),
 
     private var latitude: Double = 40.7128
     private var longitude: Double = -74.0060
-
-    //TODO ADD DATA BINDING BETWEEN VIEW and VIEWMODEL
-
-//    init {
-//        latitude = arguments!!.getDouble("latitude")
-//        longitude = arguments!!.getDouble("longitude")
-//    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -96,7 +90,9 @@ class GoogleMapView : Fragment(),
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(observer)
 
-        compositeDisposable.add(observer)
+//        compositeDisposable.add(observer)
+        Log.d("Observer", "${observer.isDisposed}")
+//        Log.d("Observer", "${observer.}")
         return rootView
     }
 
@@ -110,11 +106,22 @@ class GoogleMapView : Fragment(),
     }
 
     override fun onCameraMove() {
-        val cLat: Double = 0.0
-        val cLon: Double = 0.0
+        var cLat: Double = 0.0
+        var cLon: Double = 0.0
 
         Log.d("Camera Event", "On Camera Move")
-        Log.d("Location Update", googleMap!!.cameraPosition.target.toString())
+        Log.d("Camera Event", googleMap!!.cameraPosition.target.toString())
+
+        //Should call something that updates the amp with new markers
+        //Calculate the distance between current latitude and longitude , if more than a certain value then perform the request and update the map
+
+//        compositeDisposable.
+
+        cLat = googleMap!!.cameraPosition.target.latitude
+        cLon = googleMap!!.cameraPosition.target.longitude
+
+        Log.d("Location", "$cLat")
+        Log.d("Location", "$cLon")
     }
 
     override fun onCameraMoveStarted(reason: Int) {
@@ -161,40 +168,16 @@ class GoogleMapView : Fragment(),
         location = lm!!.getLastKnownLocation(LocationManager.GPS_PROVIDER)
     }
 
-    inner class RestaurantInfoObserver(val mapview: MapView) : DisposableObserver<List<MapHelper>>() {
-        override fun onComplete() {
-            print("hi")
-        }
-
-        override fun onNext(t: List<MapHelper>) {
-            mapview.getMapAsync { map ->
-                map.clear()
-                Log.d("Map", "This is a test")
-                t.forEach { mapHelper ->
-                    map.addMarker(
-                        MarkerOptions().position(LatLng(mapHelper.latitude, mapHelper.longitude)).title(
-                            mapHelper.name
-                        )
-                    )
-                }
-                map.animateCamera(
-                    CameraUpdateFactory.newCameraPosition(
-                        CameraPosition.Builder().target(
-                            LatLng(
-                                t.first().latitude,
-                                t.first().longitude
-                            )
-                        ).zoom(12f).build()
-                    )
+    fun addMarker(mapHelper: MapHelper) {
+        mapView.getMapAsync { map ->
+            map.addMarker(
+                MarkerOptions().position(LatLng(mapHelper.latitude, mapHelper.longitude)).title(
+                    mapHelper.name
                 )
-            }
+            )
         }
-
-        override fun onError(e: Throwable) {
-            print("hi")
-        }
-
     }
+
 
     inner class RestaurantMarkers(val lat: Double, val lon: Double, val mapview: MapView) :
         DisposableObserver<MapHelper>() {
@@ -213,13 +196,7 @@ class GoogleMapView : Fragment(),
         }
 
         override fun onNext(t: MapHelper) {
-            mapview.getMapAsync { map ->
-                map.addMarker(
-                    MarkerOptions().position(LatLng(t.latitude, t.longitude)).title(
-                        t.name
-                    )
-                )
-            }
+            addMarker(t)
         }
 
         override fun onError(e: Throwable) {
