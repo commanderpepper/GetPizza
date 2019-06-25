@@ -37,6 +37,11 @@ class MapActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        setUpGoogleMapView()
+    }
+
     @SuppressLint("MissingPermission")
     fun setUpGoogleMapView() {
         val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager

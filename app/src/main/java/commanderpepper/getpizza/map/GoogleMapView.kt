@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -44,6 +45,7 @@ class GoogleMapView : Fragment(),
     private lateinit var mapView: MapView
     private lateinit var viewmodel: MapViewModel
     private var googleMap: GoogleMap? = null
+    private var fab: FloatingActionButton? = null
 
     var lm: LocationManager? = null
     var location: Location? = null
@@ -83,17 +85,37 @@ class GoogleMapView : Fragment(),
             e.printStackTrace()
         }
 
-        // This is the observer which will subscribe to the observable
-        var observer = RestaurantMarkers(latitude, longitude, mapView)
-        var dis = mapViewModel.getPizzaMapMarkers(latitude, longitude)
+        val observer = RestaurantMarkers(latitude, longitude, mapView)
+        val dis = mapViewModel.getPizzaMapMarkers(latitude, longitude)
         dis.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(observer)
 
-//        compositeDisposable.add(observer)
+        fab = rootView.findViewById(R.id.mapViewFAB) as FloatingActionButton
+        fab!!.setOnClickListener {
+            var fabLat: Double = latitude
+            var fabLon: Double = longitude
+            mapView.getMapAsync {
+                it.clear()
+                fabLat = it.cameraPosition.target.latitude
+                fabLon = it.cameraPosition.target.longitude
+            }
+            val fabObserver = RestaurantMarkers(fabLat, fabLon, mapView)
+            val fabObservable = mapViewModel.getPizzaMapMarkers(fabLat, fabLon)
+            fabObservable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(fabObserver)
+
+        }
+
         Log.d("Observer", "${observer.isDisposed}")
-//        Log.d("Observer", "${observer.}")
         return rootView
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setLattitude()
+        setLongitude()
     }
 
     override fun onMapReady(map: GoogleMap?) {
@@ -106,22 +128,17 @@ class GoogleMapView : Fragment(),
     }
 
     override fun onCameraMove() {
-        var cLat: Double = 0.0
-        var cLon: Double = 0.0
-
         Log.d("Camera Event", "On Camera Move")
         Log.d("Camera Event", googleMap!!.cameraPosition.target.toString())
 
-        //Should call something that updates the amp with new markers
-        //Calculate the distance between current latitude and longitude , if more than a certain value then perform the request and update the map
-
-//        compositeDisposable.
-
-        cLat = googleMap!!.cameraPosition.target.latitude
-        cLon = googleMap!!.cameraPosition.target.longitude
+        val cLat = googleMap!!.cameraPosition.target.latitude
+        val cLon = googleMap!!.cameraPosition.target.longitude
 
         Log.d("Location", "$cLat")
         Log.d("Location", "$cLon")
+
+        latitude = cLat
+        longitude = cLon
     }
 
     override fun onCameraMoveStarted(reason: Int) {
@@ -138,19 +155,16 @@ class GoogleMapView : Fragment(),
 
     override fun onResume() {
         super.onResume()
-//        viewmodel.onResume()
         mapView.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-//        viewmodel.onPause()
         mapView.onPause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-//        viewmodel.onResume()
         mapView.onDestroy()
         compositeDisposable.dispose()
     }
@@ -178,7 +192,6 @@ class GoogleMapView : Fragment(),
         }
     }
 
-
     inner class RestaurantMarkers(val lat: Double, val lon: Double, val mapview: MapView) :
         DisposableObserver<MapHelper>() {
         override fun onComplete() {
@@ -189,7 +202,7 @@ class GoogleMapView : Fragment(),
                             LatLng(
                                 lat, lon
                             )
-                        ).zoom(12.5f).build()
+                        ).zoom(10f).build()
                     )
                 )
             }
@@ -207,7 +220,7 @@ class GoogleMapView : Fragment(),
                             LatLng(
                                 lat, lon
                             )
-                        ).zoom(12.5f).build()
+                        ).zoom(10f).build()
                     )
                 )
             }
