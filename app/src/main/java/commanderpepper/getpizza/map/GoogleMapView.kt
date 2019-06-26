@@ -2,38 +2,25 @@ package commanderpepper.getpizza.map
 
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
-import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-
-import com.google.android.gms.maps.MapsInitializer
-
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.GoogleMap
-
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.models.MapHelper
-import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
-import java.lang.Math.abs
 
 class GoogleMapView : Fragment(),
     GoogleMap.OnCameraMoveStartedListener,
@@ -70,7 +57,6 @@ class GoogleMapView : Fragment(),
             longitude = savedInstanceState.getDouble("lon")
         }
 
-
         Log.d("Location", latitude.toString())
         Log.d("Location", longitude.toString())
 
@@ -91,11 +77,7 @@ class GoogleMapView : Fragment(),
             e.printStackTrace()
         }
 
-        val observer = RestaurantMarkers(latitude, longitude, mapView)
-        val dis = mapViewModel.getPizzaMapMarkers(latitude, longitude)
-        dis.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(observer)
+        getMarkersandPopulateMap(latitude, longitude, mapView)
 
         fab = rootView.findViewById(R.id.mapViewFAB) as FloatingActionButton
         fab!!.setOnClickListener {
@@ -106,15 +88,9 @@ class GoogleMapView : Fragment(),
                 fabLat = it.cameraPosition.target.latitude
                 fabLon = it.cameraPosition.target.longitude
             }
-            val fabObserver = RestaurantMarkers(fabLat, fabLon, mapView)
-            val fabObservable = mapViewModel.getPizzaMapMarkers(fabLat, fabLon)
-            fabObservable.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(fabObserver)
-
+            getMarkersandPopulateMap(fabLat, fabLon, mapView)
         }
 
-        Log.d("Observer", "${observer.isDisposed}")
         return rootView
     }
 
@@ -203,6 +179,14 @@ class GoogleMapView : Fragment(),
                 )
             )
         }
+    }
+
+    fun getMarkersandPopulateMap(lat: Double, lon: Double, mapView: MapView) {
+        val observer = RestaurantMarkers(lat, lon, mapView)
+        val observable = mapViewModel.getPizzaMapMarkers(lat, lon)
+        observable.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(observer)
     }
 
     inner class RestaurantMarkers(val lat: Double, val lon: Double, val mapview: MapView) :
