@@ -62,8 +62,14 @@ class GoogleMapView : Fragment(),
         Log.d("Location", location.toString())
         Log.d("Location", lm.toString())
 
-        setLattitude()
-        setLongitude()
+        if (savedInstanceState == null) {
+            setLattitude()
+            setLongitude()
+        } else {
+            latitude = savedInstanceState.getDouble("lat")
+            longitude = savedInstanceState.getDouble("lon")
+        }
+
 
         Log.d("Location", latitude.toString())
         Log.d("Location", longitude.toString())
@@ -167,6 +173,13 @@ class GoogleMapView : Fragment(),
         super.onDestroy()
         mapView.onDestroy()
         compositeDisposable.dispose()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putDouble("lat", latitude)
+        outState.putDouble("lon", longitude)
     }
 
     fun setLongitude() {

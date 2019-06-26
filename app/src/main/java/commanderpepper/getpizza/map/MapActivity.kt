@@ -47,14 +47,29 @@ class MapActivity : AppCompatActivity() {
         val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
 
-        val pizzaMap = GoogleMapView().apply {
-            this.lm = lm
-            this.location = location
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+
+        if (supportFragmentManager.fragments.isEmpty()) {
+            val pizzaMap = GoogleMapView().apply {
+                this.lm = lm
+                this.location = location
+            }
+
+            Log.d("Humza", fragmentTransaction.isEmpty.toString())
+
+            fragmentTransaction.add(R.id.map_container, pizzaMap)
+            Log.d("Humza", supportFragmentManager.fragments.toString())
+            fragmentTransaction.commit()
+
+        } else {
+            val pm = supportFragmentManager.fragments.first() as GoogleMapView
+            pm.apply {
+                this.lm = lm
+                this.location = location
+            }
         }
 
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.add(R.id.map_container, pizzaMap)
-        fragmentTransaction.commit()
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
