@@ -24,6 +24,7 @@ class MapViewModel {
         return zomatoService.performSearch(lat, lng)
             .map { searchResults ->
                 searchResults.restaurants.map {
+                    Log.d("Rest", it.toString())
                     MapHelper(
                         it.restaurant.location.latitude.toDouble(),
                         it.restaurant.location.longitude.toDouble(),

@@ -172,11 +172,14 @@ class GoogleMapView : Fragment(),
     }
 
     fun addMarker(mapHelper: MapHelper) {
+        Log.d("MapHelper", "$mapHelper")
         mapView.getMapAsync { map ->
             map.addMarker(
-                MarkerOptions().position(LatLng(mapHelper.latitude, mapHelper.longitude)).title(
-                    mapHelper.name
-                )
+                MarkerOptions()
+                    .position(LatLng(mapHelper.latitude, mapHelper.longitude))
+                    .title(
+                        mapHelper.name
+                    )
             )
         }
     }

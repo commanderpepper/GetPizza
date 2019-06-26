@@ -64,5 +64,5 @@ data class RestaurantX(
         @Json(name = "url")
         val url: String,
         @Json(name = "user_rating")
-        val userRating: UserRating
+        val userRating: UserRating?
 )
