@@ -15,12 +15,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
-            app:srcCompat="@android:drawable/ic_menu_rotate"
+            app:srcCompat="@drawable/ic_pizza"
             android:id="@+id/mapViewFAB"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginBottom="24dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginStart="24dp"
-            android:backgroundTint="@color/colorPrimary"/>
+            android:layout_marginBottom="24dp"
+            android:layout_marginStart="16dp"
+            app:fabSize="normal"
+            android:backgroundTint="@color/cardview_light_background"/>
 
 </android.support.constraint.ConstraintLayout>

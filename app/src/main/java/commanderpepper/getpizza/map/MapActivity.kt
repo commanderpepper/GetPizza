@@ -68,8 +68,6 @@ class MapActivity : AppCompatActivity() {
                 this.location = location
             }
         }
-
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -83,7 +81,6 @@ class MapActivity : AppCompatActivity() {
                         text = getText(R.string.location_permission_text)
                         gravity = 1
                     }
-//                    view.text = getText(R.string.location_permission_text)
                     frmLayout.addView(view)
                     println("darn")
                 }
