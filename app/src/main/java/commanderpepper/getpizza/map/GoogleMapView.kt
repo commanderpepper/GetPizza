@@ -22,6 +22,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 
+
 class GoogleMapView : Fragment(),
     GoogleMap.OnCameraMoveStartedListener,
     GoogleMap.OnCameraMoveListener,
@@ -180,6 +181,7 @@ class GoogleMapView : Fragment(),
                     .title(
                         mapHelper.name
                     )
+                    .alpha(0.9f)
             )
         }
     }
