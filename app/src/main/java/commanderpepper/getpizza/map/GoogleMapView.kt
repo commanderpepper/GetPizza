@@ -18,7 +18,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.models.MapHelper
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 
@@ -37,7 +36,6 @@ class GoogleMapView : Fragment(),
 
     var lm: LocationManager? = null
     var location: Location? = null
-    private val compositeDisposable = CompositeDisposable()
     private val mapViewModel = MapViewModel()
 
     private var latitude: Double = 40.7128
@@ -149,7 +147,6 @@ class GoogleMapView : Fragment(),
     override fun onDestroy() {
         super.onDestroy()
         mapView.onDestroy()
-        compositeDisposable.dispose()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
