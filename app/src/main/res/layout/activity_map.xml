@@ -7,10 +7,17 @@
         android:layout_height="match_parent"
         tools:context=".map.MapActivity">
 
-    <FrameLayout
-              android:id="@+id/map_container"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              tools:context=".map.MapActivity" />
+    <!--<FrameLayout-->
+            <!--android:id="@+id/map_container"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--tools:context=".map.MapActivity"/>-->
+
+    <fragment
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:id="@+id/map_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".map.MapActivity"/>
 
 </android.support.constraint.ConstraintLayout>

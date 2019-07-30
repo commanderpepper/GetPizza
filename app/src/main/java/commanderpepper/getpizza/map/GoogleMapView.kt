@@ -2,6 +2,7 @@ package commanderpepper.getpizza.map
 
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
@@ -40,6 +41,17 @@ class GoogleMapView : Fragment(),
 
     private var latitude: Double = 40.7128
     private var longitude: Double = -74.0060
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+    }
+
+    /**
+     * Set up essential stuff needed for the app
+     */
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
