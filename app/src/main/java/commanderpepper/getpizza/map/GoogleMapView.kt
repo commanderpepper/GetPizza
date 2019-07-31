@@ -2,20 +2,19 @@ package commanderpepper.getpizza.map
 
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
-import android.support.design.widget.FloatingActionButton
-import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.models.MapHelper
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -42,9 +41,9 @@ class GoogleMapView : Fragment(),
     private var latitude: Double = 40.7128
     private var longitude: Double = -74.0060
 
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-    }
+//    override fun onAttach(context: Context?) {
+////        super.onAttach(context)
+////    }
 
     /**
      * Set up essential stuff needed for the app
