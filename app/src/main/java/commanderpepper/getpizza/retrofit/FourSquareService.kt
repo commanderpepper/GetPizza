@@ -11,24 +11,48 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.Query
+import java.text.SimpleDateFormat
+import java.util.*
 
 interface FourSquareService {
 
     //    ("client_id:${Constants.CLIENT_ID}", "client_secret:${Constants.CLIENT_SECRET}")
-    @GET("search")
-    suspend fun search(
+    @GET("venues/search")
+    suspend fun searchForPizzas(
         @Query("ll")
         ll: String,
         @Query("categoryId")
-        category: String,
+        categoryId: String,
         @Query("intent")
         intent: String = "browse",
         @Query("radius")
         radius: Int = 3500,
-        @Header("Authorization")
+        @Query("client_id")
         client_id: String = Constants.CLIENT_ID,
-        @Header("Authorization")
-        client_secret: String = Constants.CLIENT_SECRET
+        @Query("client_secret")
+        client_secret: String = Constants.CLIENT_SECRET,
+        @Query("limit")
+        limit: Int = 50,
+        @Query("v")
+        v: String = SimpleDateFormat("yyyyMMdd").format(Date())
+    ): SearchResponse
+
+    @GET("venues/search")
+    suspend fun searchWithTag(
+        @Query("ll")
+        ll: String,
+        @Query("query")
+        query: String,
+        @Query("intent")
+        intent: String = "browse",
+        @Query("radius")
+        radius: Int = 3500,
+        @Query("client_id")
+        client_id: String = Constants.CLIENT_ID,
+        @Query("client_secret")
+        client_secret: String = Constants.CLIENT_SECRET,
+        @Query("v")
+        v: String = "20190801"
     ): SearchResponse
 
     companion object {
