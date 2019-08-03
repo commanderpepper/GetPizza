@@ -11,9 +11,18 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import commanderpepper.getpizza.R
 import android.Manifest
+import androidx.databinding.DataBindingUtil
 import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
+import commanderpepper.getpizza.databinding.ActivityMapBinding
+import commanderpepper.getpizza.retrofit.FourSquareService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -30,7 +39,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_map)
+//        setContentView(R.layout.activity_map)
+
+        val binding: ActivityMapBinding =
+            DataBindingUtil.setContentView(this, R.layout.activity_map)
 
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map_fragment) as SupportMapFragment
@@ -38,6 +50,18 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
         setupLocationClient()
 //        askForPermission()
+//        val latlngFlow = runBlocking {
+//            FourSquareService.create().searchForPizzas("40.755657,-73.587624", "4bf58dd8d48988d1ca941735")
+//                .response.venues.asFlow()
+//                .map { it.location.lat to it.location.lng }
+//        }
+//
+//        runBlocking {
+//            withContext(Dispatchers.Default) {
+//                latlngFlow.collect { Log.d("Flow", it.toString()) }
+//            }
+//        }
+
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
