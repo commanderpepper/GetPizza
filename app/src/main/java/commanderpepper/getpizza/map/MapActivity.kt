@@ -13,8 +13,12 @@ import commanderpepper.getpizza.R
 import android.Manifest
 import androidx.databinding.DataBindingUtil
 import android.util.Log
+import android.view.MenuItem
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.databinding.ActivityMapBinding
 import commanderpepper.getpizza.retrofit.FourSquareService
 import kotlinx.coroutines.Dispatchers
@@ -25,8 +29,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 
-class MapActivity : AppCompatActivity(), OnMapReadyCallback {
-
+class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
     /**
      * Longitude and Latitude of New York City
      */
@@ -35,6 +38,8 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var drawer: DrawerLayout
+    private lateinit var toggle: ActionBarDrawerToggle
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,19 +54,29 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         setupLocationClient()
-//        askForPermission()
-//        val latlngFlow = runBlocking {
-//            FourSquareService.create().searchForPizzas("40.755657,-73.587624", "4bf58dd8d48988d1ca941735")
-//                .response.venues.asFlow()
-//                .map { it.location.lat to it.location.lng }
-//        }
-//
-//        runBlocking {
-//            withContext(Dispatchers.Default) {
-//                latlngFlow.collect { Log.d("Flow", it.toString()) }
-//            }
-//        }
 
+        drawer = findViewById(R.id.MainActivityDrawerLayout)
+//        askForPermission()
+
+        val latlngFlow = runBlocking {
+            FourSquareService.create().searchForPizzas("40.755657,-73.587624", "4bf58dd8d48988d1ca941735")
+                .response.venues.asFlow()
+                .map { it.location.lat to it.location.lng }
+        }
+
+        runBlocking {
+            withContext(Dispatchers.Default) {
+                latlngFlow.collect { Log.d("Flow", it.toString()) }
+            }
+        }
+
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.favorites -> Log.d("Nav", "Clicked on fav")
+        }
+        return true
     }
 
     override fun onMapReady(googleMap: GoogleMap) {

@@ -4,18 +4,35 @@
     <data>
 
     </data>
-    <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/MapConstraintLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context=".map.MapActivity">
 
-        <fragment
-                android:name="com.google.android.gms.maps.SupportMapFragment"
-                android:id="@+id/map_fragment"
+    <androidx.drawerlayout.widget.DrawerLayout
+            android:id="@+id/MainActivityDrawerLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/MapConstraintLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                tools:context=".map.MapActivity"/>
+                tools:context=".map.MapActivity">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <fragment
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    android:id="@+id/map_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    tools:context=".map.MapActivity"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.navigation.NavigationView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                app:menu="@menu/nav_menu"
+                android:layout_gravity="start"
+                android:id="@+id/main_nav_view"/>
+
+    </androidx.drawerlayout.widget.DrawerLayout>
+
+
 </layout>
