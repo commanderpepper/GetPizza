@@ -27,6 +27,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import androidx.lifecycle.ViewModelProviders
+import commanderpepper.getpizza.viewmodel.MainMapViewModel
+import android.widget.Toast
+import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener
 
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
@@ -40,6 +44,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var drawer: DrawerLayout
     private lateinit var toggle: ActionBarDrawerToggle
+    private lateinit var mainMapViewModel: MainMapViewModel
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,7 +87,39 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
+        setUpViewModel()
+
         getCurrentLocation()
+        getCurrentMapLocation()
+
+        setupMapListeners()
+    }
+
+    private fun getCurrentMapLocation() {
+        mainMapViewModel.setMapLocation(
+            LatLng(
+                map.cameraPosition.target.latitude,
+                map.cameraPosition.target.longitude
+            )
+        )
+    }
+
+    private fun setUpViewModel() {
+        mainMapViewModel = ViewModelProviders.of(this).get(MainMapViewModel::class.java)
+    }
+
+    private fun setupMapListeners() {
+        map.setOnCameraMoveListener {
+            Log.d("MAP", "The map moved")
+            Log.d("USER", mainMapViewModel.getUserLocation().toString())
+            getCurrentMapLocation()
+            Log.d("MAP", mainMapViewModel.getMapLocation().toString())
+        }
+        map.setOnMyLocationButtonClickListener {
+            //TODO I think that this should call a different method that will call the view model
+            getCurrentLocation()
+            true
+        }
     }
 
     private fun setupLocationClient() {
@@ -105,6 +142,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
                     val latLng = LatLng(location.latitude, location.longitude)
                     val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
                     map.moveCamera(cameraUpdate)
+                    mainMapViewModel.setUserLocation(LatLng(location.latitude, location.longitude))
                 } else {
                     Log.e(TAG, "No location found")
                 }
@@ -120,70 +158,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         )
     }
 
-//    private fun askForPermission() {
-//        if (ContextCompat.checkSelfPermission(
-//                this, Manifest.permission.ACCESS_FINE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            ActivityCompat.requestPermissions(
-//                this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), MY_PERMISSIONS_REQUEST_FINE_LOCATION
-//            )
-//        } else {
-//            setUpGoogleMapView()
-//            Log.d("Humza", "$longitude $latitude")
-//        }
-//    }
-
     override fun onStart() {
         super.onStart()
 //        setUpGoogleMapView()
     }
-
-//    @SuppressLint("MissingPermission")
-//    fun setUpGoogleMapView() {
-//        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-//        val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-//
-//        val fragmentTransaction = supportFragmentManager.beginTransaction()
-//
-//        if (supportFragmentManager.fragments.isEmpty()) {
-//            val pizzaMap = GoogleMapView().apply {
-//                this.lm = lm
-//                this.location = location
-//            }
-//
-//            Log.d("Humza", fragmentTransaction.isEmpty.toString())
-//
-//            fragmentTransaction.add(R.id.map_container, pizzaMap)
-//            Log.d("Humza", supportFragmentManager.fragments.toString())
-//            fragmentTransaction.commit()
-//
-//        } else {
-//            val pm = supportFragmentManager.fragments.first() as GoogleMapView
-//            pm.apply {
-//                this.lm = lm
-//                this.location = location
-//            }
-//        }
-//    }
-
-//    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-//        when (requestCode) {
-//            MY_PERMISSIONS_REQUEST_FINE_LOCATION -> {
-//                if ((grantResults.isNotEmpty() && grantResults.first() == PackageManager.PERMISSION_GRANTED)) {
-//                    setUpGoogleMapView()
-//                } else {
-//                    val frmLayout = findViewById<FrameLayout>(R.id.map_container)
-//                    val view = TextView(frmLayout.context).apply {
-//                        text = getText(R.string.location_permission_text)
-//                        gravity = 1
-//                    }
-//                    frmLayout.addView(view)
-//                    println("darn")
-//                }
-//            }
-//        }
-//    }
 
     companion object {
         private const val REQUEST_LOCATION = 1
