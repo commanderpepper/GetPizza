@@ -31,6 +31,7 @@ import androidx.lifecycle.ViewModelProviders
 import commanderpepper.getpizza.viewmodel.MainMapViewModel
 import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener
+import kotlinx.coroutines.InternalCoroutinesApi
 
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
@@ -69,11 +70,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
                 .map { it.location.lat to it.location.lng }
         }
 
-        runBlocking {
-            withContext(Dispatchers.Default) {
-                latlngFlow.collect { Log.d("Flow", it.toString()) }
-            }
-        }
+//        runBlocking {
+//            withContext(Dispatchers.Default) {
+//                latlngFlow.collect { Log.d("Flow", it.toString()) }
+//            }
+//        }
 
     }
 
@@ -84,6 +85,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         return true
     }
 
+    @InternalCoroutinesApi
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
@@ -108,6 +110,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         mainMapViewModel = ViewModelProviders.of(this).get(MainMapViewModel::class.java)
     }
 
+    @InternalCoroutinesApi
     private fun setupMapListeners() {
         map.setOnCameraMoveListener {
             Log.d("MAP", "The map moved")
@@ -126,6 +129,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
 
+    @InternalCoroutinesApi
     private fun getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -143,6 +147,8 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
                     val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
                     map.moveCamera(cameraUpdate)
                     mainMapViewModel.setUserLocation(LatLng(location.latitude, location.longitude))
+                    mainMapViewModel.setUpFlow()
+//                    mainMapViewModel.activateFlow()
                 } else {
                     Log.e(TAG, "No location found")
                 }

@@ -4,11 +4,18 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import commanderpepper.getpizza.repo.RetrofitRepo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
+    private var retrofitRepo: RetrofitRepo = RetrofitRepo()
 
     private var markers: MutableLiveData<List<Marker>>? = null
     // Location of the user
@@ -39,4 +46,24 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun getMapLocation() = mapLocation!!.value
+
+    @InternalCoroutinesApi
+    fun setUpFlow() {
+        val ll = "${userLocation!!.value!!.latitude},${userLocation!!.value!!.longitude}"
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                retrofitRepo.supplyFlow(ll)
+                activateFlow()
+            }
+        }
+    }
+
+    @InternalCoroutinesApi
+    fun activateFlow() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                retrofitRepo.activateFlow()
+            }
+        }
+    }
 }
