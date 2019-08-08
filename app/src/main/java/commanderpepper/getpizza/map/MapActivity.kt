@@ -63,19 +63,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
 
         drawer = findViewById(R.id.MainActivityDrawerLayout)
 //        askForPermission()
-
-        val latlngFlow = runBlocking {
-            FourSquareService.create().searchForPizzas("40.755657,-73.587624", "4bf58dd8d48988d1ca941735")
-                .response.venues.asFlow()
-                .map { it.location.lat to it.location.lng }
-        }
-
-//        runBlocking {
-//            withContext(Dispatchers.Default) {
-//                latlngFlow.collect { Log.d("Flow", it.toString()) }
-//            }
-//        }
-
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -106,8 +93,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         )
     }
 
+    @InternalCoroutinesApi
     private fun setUpViewModel() {
         mainMapViewModel = ViewModelProviders.of(this).get(MainMapViewModel::class.java)
+//        mainMapViewModel.setUpFlow()
     }
 
     @InternalCoroutinesApi
@@ -116,6 +105,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
             Log.d("MAP", "The map moved")
             Log.d("USER", mainMapViewModel.getUserLocation().toString())
             getCurrentMapLocation()
+            mainMapViewModel.setUpFlow()
             Log.d("MAP", mainMapViewModel.getMapLocation().toString())
         }
         map.setOnMyLocationButtonClickListener {
@@ -147,7 +137,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
                     val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
                     map.moveCamera(cameraUpdate)
                     mainMapViewModel.setUserLocation(LatLng(location.latitude, location.longitude))
-                    mainMapViewModel.setUpFlow()
+//                    mainMapViewModel.setUpFlow()
 //                    mainMapViewModel.activateFlow()
                 } else {
                     Log.e(TAG, "No location found")
