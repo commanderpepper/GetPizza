@@ -1,8 +1,5 @@
 package commanderpepper.getpizza
 
-import android.util.Log
-import commanderpepper.getpizza.retrofit.ZomatoService
-import org.junit.After
 import org.junit.Test
 
 import org.junit.Assert.*

@@ -1,36 +1,30 @@
 package commanderpepper.getpizza.map
 
+import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import commanderpepper.getpizza.R
-import android.Manifest
-import androidx.databinding.DataBindingUtil
 import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.navigation.NavigationView
+import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
-import commanderpepper.getpizza.retrofit.FourSquareService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import androidx.lifecycle.ViewModelProviders
+import commanderpepper.getpizza.foursquaremodels.Location
 import commanderpepper.getpizza.viewmodel.MainMapViewModel
-import android.widget.Toast
-import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 
 
@@ -65,6 +59,9 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
 //        askForPermission()
     }
 
+    /**
+     * Handles user events in the drawer layout
+     */
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.favorites -> Log.d("Nav", "Clicked on fav")
@@ -72,6 +69,9 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         return true
     }
 
+    /**
+     * Callback method called when the map is ready
+     */
     @InternalCoroutinesApi
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
@@ -84,6 +84,9 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         setupMapListeners()
     }
 
+    /**
+     * Sets up the location map location
+     */
     private fun getCurrentMapLocation() {
         mainMapViewModel.setMapLocation(
             LatLng(
@@ -93,20 +96,35 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         )
     }
 
+    private fun getMapLocation(): String {
+        return "${map.cameraPosition.target.latitude},${map.cameraPosition.target.longitude}"
+    }
+
+    /**
+     * Makes the view model
+     */
     @InternalCoroutinesApi
     private fun setUpViewModel() {
         mainMapViewModel = ViewModelProviders.of(this).get(MainMapViewModel::class.java)
 //        mainMapViewModel.setUpFlow()
+        mainMapViewModel.locations!!.observe(this, Observer {
+            Log.d("HUMZA", it.toString())
+        })
     }
 
+
+    /**
+     * Calls stuff when the map moves
+     */
+    @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     private fun setupMapListeners() {
         map.setOnCameraMoveListener {
             Log.d("MAP", "The map moved")
             Log.d("USER", mainMapViewModel.getUserLocation().toString())
             getCurrentMapLocation()
-            mainMapViewModel.setUpFlow()
             Log.d("MAP", mainMapViewModel.getMapLocation().toString())
+            mainMapViewModel.getLocations(getMapLocation())
         }
         map.setOnMyLocationButtonClickListener {
             //TODO I think that this should call a different method that will call the view model
@@ -115,10 +133,16 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         }
     }
 
+    /**
+     * Set up a location client
+     */
     private fun setupLocationClient() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
 
+    /**
+     * Gets current location
+     */
     @InternalCoroutinesApi
     private fun getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(
@@ -146,6 +170,9 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         }
     }
 
+    /**
+     * Request location permission
+     */
     private fun requestLocationPermissions() {
         ActivityCompat.requestPermissions(
             this,

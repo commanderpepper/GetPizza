@@ -7,11 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import commanderpepper.getpizza.foursquaremodels.Location
 import commanderpepper.getpizza.repo.RetrofitRepo
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -22,6 +20,14 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
     private var userLocation: MutableLiveData<LatLng>? = null
     // Location of the map
     private var mapLocation: MutableLiveData<LatLng>? = null
+
+    // List of locations
+    var locations: MutableLiveData<List<Location>>? = null
+
+    init {
+        locations = MutableLiveData()
+        locations!!.value = emptyList()
+    }
 
     fun setUserLocation(latLng: LatLng) {
         if (userLocation == null) {
@@ -47,23 +53,10 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
 
     fun getMapLocation() = mapLocation!!.value
 
-    @InternalCoroutinesApi
-    fun setUpFlow() {
-        val ll = "${userLocation!!.value!!.latitude},${userLocation!!.value!!.longitude}"
+    @ExperimentalCoroutinesApi
+    fun getLocations(latLng: String) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                retrofitRepo.supplyFlow(ll)
-                activateFlow()
-            }
-        }
-    }
-
-    @InternalCoroutinesApi
-    fun activateFlow() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                retrofitRepo.activateFlow()
-            }
+            locations!!.value = retrofitRepo.getLocations(latLng)
         }
     }
 }

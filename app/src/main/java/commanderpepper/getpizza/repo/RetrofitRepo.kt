@@ -1,26 +1,27 @@
 package commanderpepper.getpizza.repo
 
-import android.util.Log
-import com.google.android.gms.maps.model.LatLng
+import commanderpepper.getpizza.foursquaremodels.Location
 import commanderpepper.getpizza.retrofit.FourSquareService
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 
 class RetrofitRepo {
 
-    private lateinit var flow: Flow<LatLng>
+    private var fourSquareService: FourSquareService = FourSquareService.create()
 
-    suspend fun supplyFlow(ll: String) {
-        flow = withContext(Dispatchers.IO) {
-            FourSquareService.create().searchForPizzas(ll, "4bf58dd8d48988d1ca941735")
-                .response.venues.asFlow()
-                .map { LatLng(it.location.lat.toDouble(), it.location.lng.toDouble()) }
-                .flowOn(Dispatchers.IO)
-        }
-    }
-
-    @InternalCoroutinesApi
-    suspend fun activateFlow() {
-        flow.collect { Log.d("Flow", it.toString()) }
+    /**
+     * Get a list of locations
+     */
+    @ExperimentalCoroutinesApi
+    suspend fun getLocations(latLon: String): List<Location> {
+        return fourSquareService.searchForPizzas(latLon, "4bf58dd8d48988d1ca941735").response.venues
+            .asFlow()
+            .map { it.location }
+            .flowOn(Dispatchers.IO)
+            .toList()
     }
 }
