@@ -1,6 +1,7 @@
 package commanderpepper.getpizza.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,6 +11,9 @@ import com.google.android.gms.maps.model.Marker
 import commanderpepper.getpizza.foursquaremodels.Location
 import commanderpepper.getpizza.repo.RetrofitRepo
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -22,11 +26,13 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
     private var mapLocation: MutableLiveData<LatLng>? = null
 
     // List of locations
-    var locations: MutableLiveData<List<Location>>? = null
+    var locations: MutableLiveData<MutableList<Location>>? = null
+
+    var locationFlow: Flow<Location>? = null
 
     init {
         locations = MutableLiveData()
-        locations!!.value = emptyList()
+//        locations!!.value
     }
 
     fun setUserLocation(latLng: LatLng) {
@@ -56,7 +62,23 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
     @ExperimentalCoroutinesApi
     fun getLocations(latLng: String) {
         viewModelScope.launch {
-            locations!!.value = retrofitRepo.getLocations(latLng)
+            withContext(Dispatchers.Default) {
+                if (locationFlow == null) {
+                    locationFlow = retrofitRepo.getPizza(latLng)
+                }
+            }
+            withContext(Dispatchers.Default) {
+                locationFlow!!.flowOn(Dispatchers.Default).collect {
+                    //                        locations!!.value!!.add(it)
+                    Log.d("Golf", it.toString())
+                }
+            }
         }
+
+//            retrofitRepo.getPizza(latLng)!!
+//                .flowOn(Dispatchers.Default)
+//                .collect {
+//                }
+//            locations!!.value = retrofitRepo.getLocations(latLng)
     }
 }
