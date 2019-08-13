@@ -79,7 +79,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         setUpViewModel()
 
         getCurrentLocation()
-        getCurrentMapLocation()
+//        getCurrentMapLocation()
 
         setupMapListeners()
     }
@@ -87,14 +87,14 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     /**
      * Sets up the location map location
      */
-    private fun getCurrentMapLocation() {
-        mainMapViewModel.setMapLocation(
-            LatLng(
-                map.cameraPosition.target.latitude,
-                map.cameraPosition.target.longitude
-            )
-        )
-    }
+//    private fun getCurrentMapLocation() {
+//        mainMapViewModel.setMapLocation(
+//            LatLng(
+//                map.cameraPosition.target.latitude,
+//                map.cameraPosition.target.longitude
+//            )
+//        )
+//    }
 
     private fun getMapLocation(): String {
         return "${map.cameraPosition.target.latitude},${map.cameraPosition.target.longitude}"
@@ -121,9 +121,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     private fun setupMapListeners() {
         map.setOnCameraMoveListener {
             Log.d("MAP", "The map moved")
-            Log.d("USER", mainMapViewModel.getUserLocation().toString())
-            getCurrentMapLocation()
-            Log.d("MAP", mainMapViewModel.getMapLocation().toString())
+//            getCurrentMapLocation()
             mainMapViewModel.getLocations(getMapLocation())
         }
         map.setOnMyLocationButtonClickListener {
@@ -160,7 +158,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
                     val latLng = LatLng(location.latitude, location.longitude)
                     val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
                     map.moveCamera(cameraUpdate)
-                    mainMapViewModel.setUserLocation(LatLng(location.latitude, location.longitude))
 //                    mainMapViewModel.setUpFlow()
 //                    mainMapViewModel.activateFlow()
                 } else {

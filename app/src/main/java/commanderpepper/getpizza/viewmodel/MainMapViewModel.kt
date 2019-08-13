@@ -10,6 +10,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import commanderpepper.getpizza.foursquaremodels.Location
 import commanderpepper.getpizza.repo.RetrofitRepo
+import commanderpepper.getpizza.retrofit.FourSquareService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -17,47 +18,24 @@ import kotlinx.coroutines.flow.flowOn
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
-    private var retrofitRepo: RetrofitRepo = RetrofitRepo()
 
+//    private var retrofitRepo: RetrofitRepo = RetrofitRepo()
+
+    private val fourSquareService: FourSquareService = FourSquareService.create()
+
+    // List of markers
     private var markers: MutableLiveData<List<Marker>>? = null
-    // Location of the user
-    private var userLocation: MutableLiveData<LatLng>? = null
-    // Location of the map
-    private var mapLocation: MutableLiveData<LatLng>? = null
 
     // List of locations
     var locations: MutableLiveData<MutableList<Location>>? = null
 
+   //Flow of locations  
     var locationFlow: Flow<Location>? = null
 
     init {
         locations = MutableLiveData()
 //        locations!!.value
     }
-
-    fun setUserLocation(latLng: LatLng) {
-        if (userLocation == null) {
-            userLocation = MutableLiveData()
-            userLocation!!.value = latLng
-        }
-    }
-
-    fun getUserLocation() = userLocation!!.value
-
-    fun updateUserLocation(latLng: LatLng) {
-        userLocation!!.value = latLng
-    }
-
-    fun setMapLocation(latLng: LatLng) {
-        if (mapLocation == null) {
-            mapLocation = MutableLiveData()
-            mapLocation!!.value = latLng
-        } else {
-            mapLocation!!.value = latLng
-        }
-    }
-
-    fun getMapLocation() = mapLocation!!.value
 
     @ExperimentalCoroutinesApi
     fun getLocations(latLng: String) {
