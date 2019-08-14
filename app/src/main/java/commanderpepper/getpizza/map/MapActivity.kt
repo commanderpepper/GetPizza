@@ -12,6 +12,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -22,10 +23,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
-import commanderpepper.getpizza.foursquaremodels.Location
 import commanderpepper.getpizza.viewmodel.MainMapViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.*
 
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
@@ -72,6 +71,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     /**
      * Callback method called when the map is ready
      */
+    @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
@@ -100,16 +100,29 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         return "${map.cameraPosition.target.latitude},${map.cameraPosition.target.longitude}"
     }
 
+    fun getMapLocationForViewModel(): String {
+        return "${map.cameraPosition.target.latitude},${map.cameraPosition.target.longitude}"
+    }
+
     /**
      * Makes the view model
      */
+    @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     private fun setUpViewModel() {
-        mainMapViewModel = ViewModelProviders.of(this).get(MainMapViewModel::class.java)
-//        mainMapViewModel.setUpFlow()
-        mainMapViewModel.locations!!.observe(this, Observer {
-            Log.d("HUMZA", it.toString())
-        })
+
+        val mapActivity = this
+
+        mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
+
+        mainMapViewModel.mapLocation = getMapLocationForViewModel()
+
+        mainMapViewModel.locations.observe(
+            mapActivity,
+            Observer {
+                Log.d("HUMZA", it.toString())
+            }
+        )
     }
 
 
@@ -122,7 +135,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         map.setOnCameraMoveListener {
             Log.d("MAP", "The map moved")
 //            getCurrentMapLocation()
-            mainMapViewModel.getLocations(getMapLocation())
+//            mainMapViewModel.getLocations(getMapLocation())
         }
         map.setOnMyLocationButtonClickListener {
             //TODO I think that this should call a different method that will call the view model
