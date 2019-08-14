@@ -20,14 +20,10 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
     private val fourSquareService: FourSquareService = FourSquareService.create()
     var mapLocation: String = ""
 
-    // List of locations, I think this is what will be read by the main activity
-//    val locations: MutableLiveData<MutableList<Location>> = lazyMap {  }
-
     @ExperimentalCoroutinesApi
     val locations by lazy {
         val location = setLocations(mapLocation)
         Log.d("Motown", mapLocation)
-//        location.postValue(getLocations(mapLocation))
         return@lazy location
     }
 
@@ -42,31 +38,12 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
                         it.location
                     }
                     .flowOn(Dispatchers.IO)
+                    .catch {
+                        Log.d("Motown", "Something went wrong")
+                    }
                 flow.toCollection(set)
             }
         }
         return MutableLiveData(set)
     }
-
-    @ExperimentalCoroutinesApi
-    fun getLocations(latLng: String): Set<Location> {
-        val set = mutableSetOf<Location>()
-        viewModelScope.launch {
-            withContext(Dispatchers.Default) {
-                val flow =
-                    fourSquareService.searchForPizzas(latLng, "4bf58dd8d48988d1ca941735")
-                        .response.venues.asFlow()
-                        .map {
-                            it.location
-                        }
-                        .flowOn(Dispatchers.IO)
-
-                flow.toCollection(set)
-            }
-
-        }
-        return set
-    }
-
-
 }

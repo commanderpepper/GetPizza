@@ -27,7 +27,10 @@ import commanderpepper.getpizza.viewmodel.MainMapViewModel
 import kotlinx.coroutines.*
 
 
-class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener,
+    GoogleMap.OnCameraMoveListener {
+
+
     /**
      * Longitude and Latitude of New York City
      */
@@ -76,32 +79,24 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
-        setUpViewModel()
-
         getCurrentLocation()
+        setupMapListeners()
+
+        map.setOnCameraMoveListener(this)
+//        setUpViewModel()
 //        getCurrentMapLocation()
 
-        setupMapListeners()
     }
 
-    /**
-     * Sets up the location map location
-     */
-//    private fun getCurrentMapLocation() {
-//        mainMapViewModel.setMapLocation(
-//            LatLng(
-//                map.cameraPosition.target.latitude,
-//                map.cameraPosition.target.longitude
-//            )
-//        )
-//    }
 
     private fun getMapLocation(): String {
         return "${map.cameraPosition.target.latitude},${map.cameraPosition.target.longitude}"
     }
 
-    fun getMapLocationForViewModel(): String {
-        return "${map.cameraPosition.target.latitude},${map.cameraPosition.target.longitude}"
+    // Called whenever the user ends a camera movement
+    @InternalCoroutinesApi
+    override fun onCameraMove() {
+        setUpViewModel()
     }
 
     /**
@@ -114,13 +109,17 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         val mapActivity = this
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
+        Log.d("MapViewModel", mainMapViewModel.toString())
 
-        mainMapViewModel.mapLocation = getMapLocationForViewModel()
+        //TODO Make it so that the location is properly set. It might have to be an async call.
+        mainMapViewModel.mapLocation = getMapLocation()
 
         mainMapViewModel.locations.observe(
             mapActivity,
-            Observer {
-                Log.d("HUMZA", it.toString())
+            Observer { set ->
+                set.onEach {
+                    Log.d("HUMZA", it.toString())
+                }
             }
         )
     }
