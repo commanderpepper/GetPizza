@@ -3,28 +3,34 @@ package commanderpepper.getpizza.viewmodel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import commanderpepper.getpizza.foursquaremodels.Location
-import commanderpepper.getpizza.repo.RetrofitRepo
 import commanderpepper.getpizza.retrofit.FourSquareService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import okhttp3.Dispatcher
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val fourSquareService: FourSquareService = FourSquareService.create()
     var mapLocation: String = ""
 
+    private val locationLiveData = MutableLiveData<String>()
+
     @ExperimentalCoroutinesApi
     val locations by lazy {
-        val location = setLocations(mapLocation)
+        val locations = setLocations(mapLocation)
         Log.d("Motown", mapLocation)
-        return@lazy location
+        return@lazy locations
+    }
+
+    fun setLocationLiveData(latlng: String) {
+        locationLiveData.value = latlng
+    }
+
+    fun getLocationFromLiveData(): String {
+        Log.d("MapVM", locationLiveData.value ?: "Nothing")
+        return locationLiveData.value ?: "0.0,0.0"
     }
 
     @ExperimentalCoroutinesApi

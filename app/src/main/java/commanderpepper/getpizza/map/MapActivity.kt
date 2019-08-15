@@ -27,9 +27,11 @@ import commanderpepper.getpizza.viewmodel.MainMapViewModel
 import kotlinx.coroutines.*
 
 
-class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener,
-    GoogleMap.OnCameraMoveListener {
-
+class MapActivity : AppCompatActivity(),
+    OnMapReadyCallback,
+    NavigationView.OnNavigationItemSelectedListener,
+    GoogleMap.OnCameraMoveListener,
+    GoogleMap.OnCameraIdleListener {
 
     /**
      * Longitude and Latitude of New York City
@@ -82,10 +84,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         getCurrentLocation()
         setupMapListeners()
 
+        // Called when the camera changes position
         map.setOnCameraMoveListener(this)
-//        setUpViewModel()
-//        getCurrentMapLocation()
 
+        // Called when the camera is done moving with the user
+        map.setOnCameraIdleListener(this)
     }
 
 
@@ -94,9 +97,19 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     }
 
     // Called whenever the user ends a camera movement
+    @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     override fun onCameraMove() {
         setUpViewModel()
+    }
+
+    //Called when the camera is done moving
+    override fun onCameraIdle() {
+        updateViewModel()
+    }
+
+    fun updateViewModel() {
+        Log.d("MVM", "The Camera is done moving")
     }
 
     /**
@@ -113,6 +126,9 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
 
         //TODO Make it so that the location is properly set. It might have to be an async call.
         mainMapViewModel.mapLocation = getMapLocation()
+        mainMapViewModel.setLocationLiveData(getMapLocation())
+
+        Log.d("MapVM", mainMapViewModel.getLocationFromLiveData())
 
         mainMapViewModel.locations.observe(
             mapActivity,
