@@ -14,20 +14,13 @@ import kotlinx.coroutines.flow.*
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val fourSquareService: FourSquareService = FourSquareService.create()
-//    var mapLocation: String = ""
 
     val locationLiveData = MutableLiveData<String>()
 
     @ExperimentalCoroutinesApi
     val locations by lazy {
-        //        val locations = setLocations(getLocationFromLiveData())
-//        Log.d("Motown", mapLocation)
         return@lazy locationLiveData.value?.let { setLocations(it) }
     }
-
-//    fun setLocationLiveData(latlng: String) {
-//        locationLiveData.value = latlng
-//    }
 
     fun setLocationLiveData(latlng: LatLng) {
         if (latlng.latitude + 0.0182 > locationLiveData.value?.split(",")?.first()?.toDouble() ?: 0.0) {
@@ -46,13 +39,12 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
 
     fun getLocationFromLiveData(): String {
         Log.d("MVM", locationLiveData.value ?: "Nothing")
-        // LA's Lat and Lon 34.052235, -118.243683.
         // Iceland's lat and long. If I'm in iceland, oh no, I guess. 64.128288, -21.827774.
         return locationLiveData.value ?: "64.12,-21.82"
     }
 
     /**
-     * Should be called once I think
+     * Used to set up the locations inside this view model. Should be called only once.
      */
     @ExperimentalCoroutinesApi
     fun setLocations(latLng: String): MutableLiveData<Set<Location>> {
@@ -76,9 +68,9 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
     }
 
     /**
-     * Call to update locations
+     * Call to update locations. Used
      */
-    fun updateLocations() {
+    private fun updateLocations() {
         viewModelScope.launch {
             val set = mutableSetOf<Location>()
             withContext(Dispatchers.Default) {

@@ -13,7 +13,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -25,6 +24,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
+import commanderpepper.getpizza.foursquaremodels.Location
 import commanderpepper.getpizza.viewmodel.MainMapViewModel
 import kotlinx.coroutines.*
 
@@ -32,7 +32,6 @@ import kotlinx.coroutines.*
 class MapActivity : AppCompatActivity(),
     OnMapReadyCallback,
     NavigationView.OnNavigationItemSelectedListener,
-    GoogleMap.OnCameraMoveListener,
     GoogleMap.OnCameraIdleListener {
 
     /**
@@ -48,11 +47,14 @@ class MapActivity : AppCompatActivity(),
     private lateinit var mainMapViewModel: MainMapViewModel
     private lateinit var userInitialLatLng: LatLng
 
+    /**
+     * Inflates the layout, fragment and sets up the location client.
+     * This also sets up the ViewModel.
+     */
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_map)
 
         val binding: ActivityMapBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_map)
@@ -63,10 +65,7 @@ class MapActivity : AppCompatActivity(),
 
         setupLocationClient()
 
-//        setUpViewModel()
-
         drawer = findViewById(R.id.MainActivityDrawerLayout)
-//        askForPermission()
     }
 
     /**
@@ -93,37 +92,19 @@ class MapActivity : AppCompatActivity(),
         map.setOnCameraIdleListener(this)
     }
 
-
-    private fun getMapLocation(): String {
-        return "${map.cameraPosition.target.latitude},${map.cameraPosition.target.longitude}"
-    }
-
-    fun getCameraLatLng(): LatLng {
+    private fun getCameraLatLng(): LatLng {
         return LatLng(map.cameraPosition.target.latitude, map.cameraPosition.target.longitude)
     }
 
-    // Called whenever the user ends a camera movement
-    @ExperimentalCoroutinesApi
-    @InternalCoroutinesApi
-    override fun onCameraMove() {
-        updateViewModel()
-    }
-
-    //Called when the camera is done moving
+    //Called when the camera is done moving. It will update the location within the viewmodel
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     override fun onCameraIdle() {
         updateViewModel(getCameraLatLng())
     }
 
-    fun updateViewModel() {
-//        mainMapViewModel.setLocationLiveData(userLatLng())
-        mainMapViewModel.updateLocationLiveData(userLatLng())
-        Log.d("UVM", "The Camera is done moving")
-    }
-
-    fun updateViewModel(cameraLocation: LatLng) {
-        mainMapViewModel.updateLocationLiveData(cameraLocation)
+    private fun updateViewModel(newLocation: LatLng) {
+        mainMapViewModel.updateLocationLiveData(newLocation)
     }
 
     /**
@@ -145,33 +126,29 @@ class MapActivity : AppCompatActivity(),
 
         Log.d("MapVM", mainMapViewModel.getLocationFromLiveData())
 
-        //
+        //Whenever the set of locations changes, call the add markers functon
         mainMapViewModel.locations!!.observe(
             mapActivity,
-            Observer { set ->
-                Log.d("SetOfLocation", set.toString())
-                set.forEach {
-                    map.addMarker(
-                        MarkerOptions()
-                            .position(LatLng(it.lat.toDouble(), it.lng.toDouble()))
-                            .title(it.state)
-                    )
-                }
-            }
+            addMarkersToMap()
         )
 
+        //Whenever the location stored in the ViewModel changes, call a function to change the
         mainMapViewModel.locationLiveData.observe(mapActivity, Observer {
             mainMapViewModel.setLocations(it)
         })
     }
 
-    @SuppressLint("MissingPermission")
-    private fun userLatLng(): LatLng {
-        var location1 = LatLng(0.0, 0.0)
-        fusedLocationClient.lastLocation.addOnCompleteListener {
-            location1 = LatLng(it.result!!.longitude, it.result!!.latitude)
+    private fun addMarkersToMap(): Observer<Set<Location>> {
+        return Observer { set ->
+            Log.d("SetOfLocation", set.toString())
+            set.forEach {
+                map.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(it.lat.toDouble(), it.lng.toDouble()))
+                        .title(it.state)
+                )
+            }
         }
-        return location1
     }
 
     /**
@@ -189,13 +166,35 @@ class MapActivity : AppCompatActivity(),
          * Called when the user clicks on the my location button on the top right
          */
         map.setOnMyLocationButtonClickListener {
-            /**
-             * TODO I think that this should call a different method that will call the view model
-             * I say this because the getCurrentLocation should be used once I think
-             */
-
-            getCurrentLocation()
+            getUserLocation()
             true
+        }
+    }
+
+    /**
+     * Get the user's current location and update the location within the view model
+     */
+    private fun getUserLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestLocationPermissions()
+        } else {
+            fusedLocationClient.lastLocation.addOnCompleteListener {
+                val location = it.result
+                if (location != null) {
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
+                    map.moveCamera(cameraUpdate)
+                    // Update the view model
+                    updateViewModel(latLng)
+
+                } else {
+                    Log.e(TAG, "No location found")
+                }
+            }
         }
     }
 
@@ -207,12 +206,11 @@ class MapActivity : AppCompatActivity(),
     }
 
     /**
-     * Gets current location, should only be used when the app is starting up
+     * Gets current location, should only be used when the app is starting up, inside onCreate()
      */
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     private fun getCurrentLocation() {
-//        var latLng = LatLng(0.0, 0.0)
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -229,6 +227,7 @@ class MapActivity : AppCompatActivity(),
                     userInitialLatLng = latLng
                     val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
                     map.moveCamera(cameraUpdate)
+                    // Set up the view model for the first time
                     setUpViewModel()
 
                 } else {
@@ -236,7 +235,6 @@ class MapActivity : AppCompatActivity(),
                 }
             }
         }
-//        return latLng
     }
 
     /**
@@ -248,11 +246,6 @@ class MapActivity : AppCompatActivity(),
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
             REQUEST_LOCATION
         )
-    }
-
-    override fun onStart() {
-        super.onStart()
-//        setUpGoogleMapView()
     }
 
     companion object {
