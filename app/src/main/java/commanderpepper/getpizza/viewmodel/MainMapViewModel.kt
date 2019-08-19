@@ -6,56 +6,58 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
-import commanderpepper.getpizza.foursquaremodels.Location
+import commanderpepper.getpizza.foursquaremodels.Venue
 import commanderpepper.getpizza.retrofit.FourSquareService
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val fourSquareService: FourSquareService = FourSquareService.create()
 
-    val locationLiveData = MutableLiveData<String>()
+    val latLngLiveData = MutableLiveData<LatLng>()
 
     @ExperimentalCoroutinesApi
     val locations by lazy {
-        return@lazy locationLiveData.value?.let { setLocations(it) }
+        return@lazy latLngLiveData.value?.let { setLocations(it) }
     }
 
     fun setLocationLiveData(latlng: LatLng) {
-        if (latlng.latitude + 0.0182 > locationLiveData.value?.split(",")?.first()?.toDouble() ?: 0.0) {
-            Log.d("UVM", "The Camera is moving")
-            locationLiveData.value = "${latlng.latitude},${latlng.longitude}"
-        }
+        latLngLiveData.value = latlng
+        setLocations(latlng)
+        updateLocations()
+        Log.d("Venues", latlng.toString())
+        Log.d("Venues", latLngLiveData.value.toString())
     }
 
     fun updateLocationLiveData(latlng: LatLng) {
-        if (latlng.latitude + 0.0182 > locationLiveData.value?.split(",")?.first()?.toDouble() ?: 0.0) {
-            Log.d("UVM", "The Camera is moving")
-            locationLiveData.value = "${latlng.latitude},${latlng.longitude}"
+        if (compareLatLng(latlng, latLngLiveData.value ?: LatLng(0.0, 0.0))) {
+            Log.d("UVM", "The camera moved")
+            latLngLiveData.value = latlng
             updateLocations()
         }
-    }
-
-    fun getLocationFromLiveData(): String {
-        Log.d("MVM", locationLiveData.value ?: "Nothing")
-        // Iceland's lat and long. If I'm in iceland, oh no, I guess. 64.128288, -21.827774.
-        return locationLiveData.value ?: "64.12,-21.82"
     }
 
     /**
      * Used to set up the locations inside this view model. Should be called only once.
      */
     @ExperimentalCoroutinesApi
-    fun setLocations(latLng: String): MutableLiveData<Set<Location>> {
-        val set = mutableSetOf<Location>()
+    fun setLocations(latLng: LatLng): MutableLiveData<Set<Venue>> {
+        val set = mutableSetOf<Venue>()
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                val flow = fourSquareService.searchForPizzas(latLng, "4bf58dd8d48988d1ca941735")
+                val flow = fourSquareService.searchForPizzas(
+                    convertLatLngtoString(latLng)
+                    , "4bf58dd8d48988d1ca941735"
+                )
                     .response.venues.asFlow()
                     .map {
                         Log.d("Gotown", it.toString())
-                        it.location
+                        it
                     }
                     .flowOn(Dispatchers.IO)
                     .catch {
@@ -70,15 +72,19 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
     /**
      * Call to update locations. Used
      */
+    @ExperimentalCoroutinesApi
     private fun updateLocations() {
         viewModelScope.launch {
-            val set = mutableSetOf<Location>()
+            val set = mutableSetOf<Venue>()
             withContext(Dispatchers.Default) {
-                val flow = fourSquareService.searchForPizzas(locationLiveData.value!!, "4bf58dd8d48988d1ca941735")
+                val flow = fourSquareService.searchForPizzas(
+                    convertLatLngtoString(latLngLiveData.value!!),
+                    "4bf58dd8d48988d1ca941735"
+                )
                     .response.venues.asFlow()
                     .map {
                         Log.d("Gotown", it.toString())
-                        it.location
+                        it
                     }
                     .flowOn(Dispatchers.IO)
                     .catch {
@@ -88,5 +94,27 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
                 locations!!.postValue(set)
             }
         }
+    }
+
+    private fun convertLatLngtoString(latLng: LatLng): String {
+        return "${latLng.latitude},${latLng.longitude}"
+    }
+
+    /**
+     * Distance is about half a mile
+     */
+    fun compareLatLng(latlng1: LatLng, latlng2: LatLng, distance: Double = 0.003623188): Boolean {
+        val lat1 = latlng1.latitude
+        val lng1 = latlng2.longitude
+        val lat2 = latlng2.latitude
+        val lng2 = latlng2.longitude
+
+        val latDif = abs(lat1 - lat2)
+        val lngDif = abs(lng1 - lng2)
+
+        Log.d("Compare", latDif.toString())
+        Log.d("Compare", lngDif.toString())
+
+        return latDif >= distance || lngDif >= distance
     }
 }

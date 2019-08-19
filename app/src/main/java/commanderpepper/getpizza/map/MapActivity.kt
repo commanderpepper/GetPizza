@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -25,6 +26,7 @@ import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
 import commanderpepper.getpizza.foursquaremodels.Location
+import commanderpepper.getpizza.foursquaremodels.Venue
 import commanderpepper.getpizza.viewmodel.MainMapViewModel
 import kotlinx.coroutines.*
 
@@ -119,33 +121,35 @@ class MapActivity : AppCompatActivity(),
         val mapActivity = this
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
+
+//        mainMapViewModel.locations!!.value = setOf()
+
         Log.d("MapViewModel", mainMapViewModel.toString())
 
-//        var location = LatLng(0.0, 0.0)
+        Log.d("Venues", mainMapViewModel.toString())
         mainMapViewModel.setLocationLiveData(userInitialLatLng)
 
-        Log.d("MapVM", mainMapViewModel.getLocationFromLiveData())
+        //Whenever the location stored in the ViewModel changes, call a function to change the locations.
+        mainMapViewModel.latLngLiveData.observe(mapActivity, Observer {
+            mainMapViewModel.setLocations(it)
+        })
 
-        //Whenever the set of locations changes, call the add markers functon
-        mainMapViewModel.locations!!.observe(
+        //Whenever the set of locations changes, call the add markers function
+        mainMapViewModel.locations?.observe(
             mapActivity,
             addMarkersToMap()
         )
-
-        //Whenever the location stored in the ViewModel changes, call a function to change the
-        mainMapViewModel.locationLiveData.observe(mapActivity, Observer {
-            mainMapViewModel.setLocations(it)
-        })
     }
 
-    private fun addMarkersToMap(): Observer<Set<Location>> {
+    private fun addMarkersToMap(): Observer<Set<Venue>> {
         return Observer { set ->
+            map.clear()
             Log.d("SetOfLocation", set.toString())
             set.forEach {
                 map.addMarker(
                     MarkerOptions()
-                        .position(LatLng(it.lat.toDouble(), it.lng.toDouble()))
-                        .title(it.state)
+                        .position(LatLng(it.location.lat.toDouble(), it.location.lng.toDouble()))
+                        .title(it.name)
                 )
             }
         }
@@ -157,11 +161,6 @@ class MapActivity : AppCompatActivity(),
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     private fun setupMapListeners() {
-        map.setOnCameraMoveListener {
-            Log.d("MAP", "The map moved")
-//            getCurrentMapLocation()
-//            mainMapViewModel.getLocations(getMapLocation())
-        }
         /**
          * Called when the user clicks on the my location button on the top right
          */
@@ -229,7 +228,6 @@ class MapActivity : AppCompatActivity(),
                     map.moveCamera(cameraUpdate)
                     // Set up the view model for the first time
                     setUpViewModel()
-
                 } else {
                     Log.e(TAG, "No location found")
                 }
