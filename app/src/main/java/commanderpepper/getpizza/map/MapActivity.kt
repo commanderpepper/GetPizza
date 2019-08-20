@@ -14,6 +14,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.map
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -21,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
@@ -48,6 +50,8 @@ class MapActivity : AppCompatActivity(),
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var mainMapViewModel: MainMapViewModel
     private lateinit var userInitialLatLng: LatLng
+
+    private val markerMap = mutableMapOf<String, Marker>()
 
     /**
      * Inflates the layout, fragment and sets up the location client.
@@ -122,12 +126,8 @@ class MapActivity : AppCompatActivity(),
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
 
-//        mainMapViewModel.locations!!.value = setOf()
-
-        Log.d("MapViewModel", mainMapViewModel.toString())
-
-        Log.d("Venues", mainMapViewModel.toString())
         mainMapViewModel.setLocationLiveData(userInitialLatLng)
+//        mainMapViewModel.locations!!.value!!.mapTo(markerMap, { it.id, it })
 
         //Whenever the location stored in the ViewModel changes, call a function to change the locations.
         mainMapViewModel.latLngLiveData.observe(mapActivity, Observer {
@@ -141,16 +141,25 @@ class MapActivity : AppCompatActivity(),
         )
     }
 
-    private fun addMarkersToMap(): Observer<Set<Venue>> {
-        return Observer { set ->
-            map.clear()
-            Log.d("SetOfLocation", set.toString())
-            set.forEach {
-                map.addMarker(
+    private fun addMarkersToMap(): Observer<Map<String, Venue>> {
+        return Observer { venueMap ->
+            //            map.clear()
+
+            //Add all items from the venues hash map to the google map
+            venueMap.forEach {
+                markerMap[it.key] = map.addMarker(
                     MarkerOptions()
-                        .position(LatLng(it.location.lat.toDouble(), it.location.lng.toDouble()))
-                        .title(it.name)
+                        .position(LatLng(it.value.location.lat.toDouble(), it.value.location.lng.toDouble()))
+                        .title(it.value.name)
                 )
+            }
+
+            //Remove any items not inside the map of venues from the map
+            markerMap.forEach {
+                if (!venueMap.containsKey(it.key)) {
+                    it.value.remove()
+                    Log.d("Removal", it.toString())
+                }
             }
         }
     }

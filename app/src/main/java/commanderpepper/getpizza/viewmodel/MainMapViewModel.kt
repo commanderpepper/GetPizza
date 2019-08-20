@@ -46,8 +46,9 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
      * Used to set up the locations inside this view model. Should be called only once.
      */
     @ExperimentalCoroutinesApi
-    fun setLocations(latLng: LatLng): MutableLiveData<Set<Venue>> {
+    fun setLocations(latLng: LatLng): MutableLiveData<Map<String, Venue>> {
         val set = mutableSetOf<Venue>()
+//        val mapOfVenues = mutableMapOf<String, Venue>()
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
                 val flow = fourSquareService.searchForPizzas(
@@ -66,7 +67,8 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
                 flow.toCollection(set)
             }
         }
-        return MutableLiveData(set)
+//        return MutableLiveData(set)
+        return MutableLiveData(set.map { it.id to it }.toMap())
     }
 
     /**
@@ -91,9 +93,11 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
                         Log.d("Motown", "Something went wrong")
                     }
                 flow.toCollection(set)
-                locations!!.postValue(set)
+                locations!!.postValue(set.map { it.id to it }.toMap())
             }
         }
+        Log.d("Venues", locations!!.value!!.toString())
+        Log.d("VenuesSize", locations!!.value!!.size.toString())
     }
 
     private fun convertLatLngtoString(latLng: LatLng): String {
