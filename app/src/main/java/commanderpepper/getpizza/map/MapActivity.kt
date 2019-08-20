@@ -147,11 +147,14 @@ class MapActivity : AppCompatActivity(),
 
             //Add all items from the venues hash map to the google map
             venueMap.forEach {
-                markerMap[it.key] = map.addMarker(
-                    MarkerOptions()
-                        .position(LatLng(it.value.location.lat.toDouble(), it.value.location.lng.toDouble()))
-                        .title(it.value.name)
-                )
+                //Makes sure that a maker is only added once
+                if (markerMap[it.key] == null) {
+                    markerMap[it.key] = map.addMarker(
+                        MarkerOptions()
+                            .position(LatLng(it.value.location.lat.toDouble(), it.value.location.lng.toDouble()))
+                            .title(it.value.name)
+                    )
+                }
             }
 
             //Remove any items not inside the map of venues from the map
