@@ -51,7 +51,7 @@ class MapActivity : AppCompatActivity(),
     private lateinit var mainMapViewModel: MainMapViewModel
     private lateinit var userInitialLatLng: LatLng
 
-    private val markerMap = mutableMapOf<String, Marker>()
+    private var markerMap = mutableMapOf<String, Marker>()
 
     /**
      * Inflates the layout, fragment and sets up the location client.
@@ -91,6 +91,8 @@ class MapActivity : AppCompatActivity(),
     @InternalCoroutinesApi
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+
+        Log.d("MapReady", "Map is ready")
 
         getCurrentLocation()
         setupMapListeners()
@@ -143,15 +145,18 @@ class MapActivity : AppCompatActivity(),
 
     private fun addMarkersToMap(): Observer<Map<String, Venue>> {
         return Observer { venueMap ->
-            //            map.clear()
-
             //Add all items from the venues hash map to the google map
             venueMap.forEach {
                 //Makes sure that a maker is only added once
                 if (markerMap[it.key] == null) {
                     markerMap[it.key] = map.addMarker(
                         MarkerOptions()
-                            .position(LatLng(it.value.location.lat.toDouble(), it.value.location.lng.toDouble()))
+                            .position(
+                                LatLng(
+                                    it.value.location.lat.toDouble(),
+                                    it.value.location.lng.toDouble()
+                                )
+                            )
                             .title(it.value.name)
                     )
                 }
