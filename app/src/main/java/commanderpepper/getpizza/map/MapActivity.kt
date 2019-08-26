@@ -44,6 +44,8 @@ class MapActivity : AppCompatActivity(),
     private var latitude: Double = 40.7128
     private var longitude: Double = -74.0060
 
+    private val zoom = 15.0f
+
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var drawer: DrawerLayout
@@ -128,13 +130,16 @@ class MapActivity : AppCompatActivity(),
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
 
-        mainMapViewModel.setLocationLiveData(userInitialLatLng)
-//        mainMapViewModel.locations!!.value!!.mapTo(markerMap, { it.id, it })
-
-        //Whenever the location stored in the ViewModel changes, call a function to change the locations.
         mainMapViewModel.latLngLiveData.observe(mapActivity, Observer {
             mainMapViewModel.setLocations(it)
         })
+
+        if (mainMapViewModel.latLngLiveData.value == null) {
+
+            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(userInitialLatLng, zoom)
+            map.moveCamera(cameraUpdate)
+            mainMapViewModel.setLocationLiveData(userInitialLatLng)
+        }
 
         //Whenever the set of locations changes, call the add markers function
         mainMapViewModel.locations?.observe(
@@ -202,7 +207,7 @@ class MapActivity : AppCompatActivity(),
                 val location = it.result
                 if (location != null) {
                     val latLng = LatLng(location.latitude, location.longitude)
-                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
+                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom)
                     map.moveCamera(cameraUpdate)
                     // Update the view model
                     updateViewModel(latLng)
@@ -241,8 +246,8 @@ class MapActivity : AppCompatActivity(),
                 if (location != null) {
                     val latLng = LatLng(location.latitude, location.longitude)
                     userInitialLatLng = latLng
-                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
-                    map.moveCamera(cameraUpdate)
+//                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
+//                    map.moveCamera(cameraUpdate)
                     // Set up the view model for the first time
                     setUpViewModel()
                 } else {

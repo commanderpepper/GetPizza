@@ -107,7 +107,11 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
     /**
      * Distance is about half a mile
      */
-    fun compareLatLng(latlng1: LatLng, latlng2: LatLng, distance: Double = 0.003623188): Boolean {
+    private fun compareLatLng(
+        latlng1: LatLng,
+        latlng2: LatLng,
+        distance: Double = 0.003623188
+    ): Boolean {
         val lat1 = latlng1.latitude
         val lng1 = latlng2.longitude
         val lat2 = latlng2.latitude
