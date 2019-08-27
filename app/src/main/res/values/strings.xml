@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Get Pizza</string>
     <string name="location_permission_text">Location permission is needed</string>
+    <string name="placeHolderName">Panucci\'s Pizza</string>
+    <string name="placeHolderAddress">The Future</string>
 </resources>

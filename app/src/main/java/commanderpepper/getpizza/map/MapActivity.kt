@@ -6,15 +6,14 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.lifecycle.map
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -27,10 +26,11 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
-import commanderpepper.getpizza.foursquaremodels.Location
 import commanderpepper.getpizza.foursquaremodels.Venue
+import commanderpepper.getpizza.ui.PizzaInfoWindowAdapter
 import commanderpepper.getpizza.viewmodel.MainMapViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.InternalCoroutinesApi
 
 
 class MapActivity : AppCompatActivity(),
@@ -93,13 +93,20 @@ class MapActivity : AppCompatActivity(),
     @InternalCoroutinesApi
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-
+        map.setInfoWindowAdapter(PizzaInfoWindowAdapter(this))
+        map.setOnInfoWindowClickListener {
+            handleInfoWindowClick(it)
+        }
         Log.d("MapReady", "Map is ready")
 
         getCurrentLocation()
         setupMapListeners()
 
         map.setOnCameraIdleListener(this)
+    }
+
+    private fun handleInfoWindowClick(marker: Marker) {
+        Toast.makeText(this, marker.title, Toast.LENGTH_SHORT).show()
     }
 
     private fun getCameraLatLng(): LatLng {
@@ -163,8 +170,12 @@ class MapActivity : AppCompatActivity(),
                                 )
                             )
                             .title(it.value.name)
+                            .snippet(it.value.location.address)
                     )
+                    //Add a Venue to a marker 
+                    markerMap[it.key]!!.tag = it.value
                 }
+
             }
 
             //Remove any items not inside the map of venues from the map
