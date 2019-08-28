@@ -8,16 +8,16 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import commanderpepper.getpizza.foursquaremodels.Venue
 import commanderpepper.getpizza.retrofit.FourSquareService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import commanderpepper.getpizza.room.PizzaDatabase
+import commanderpepper.getpizza.room.entity.PizzaFav
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.abs
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val fourSquareService: FourSquareService = FourSquareService.create()
+    private val pizzaDatabase = PizzaDatabase.getInstance(application)
 
     val latLngLiveData = MutableLiveData<LatLng>()
 
@@ -102,6 +102,36 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
 
     private fun convertLatLngtoString(latLng: LatLng): String {
         return "${latLng.latitude},${latLng.longitude}"
+    }
+
+    fun addPizza(venue: Venue) {
+        runBlocking {
+            withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
+                pizzaDatabase.pizzaDao().addPizzaFav(
+                    PizzaFav(
+                        venue.id,
+                        venue.location.lat.toDouble(),
+                        venue.location.lng.toDouble(),
+                        venue.location.address
+                    )
+                )
+            }
+        }
+    }
+
+    fun deletePizza(venue: Venue) {
+        runBlocking {
+            withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
+                pizzaDatabase.pizzaDao().deletePizzaFav(
+                    PizzaFav(
+                        venue.id,
+                        venue.location.lat.toDouble(),
+                        venue.location.lng.toDouble(),
+                        venue.location.address
+                    )
+                )
+            }
+        }
     }
 
     /**

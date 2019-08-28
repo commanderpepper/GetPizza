@@ -172,7 +172,7 @@ class MapActivity : AppCompatActivity(),
                             .title(it.value.name)
                             .snippet(it.value.location.address)
                     )
-                    //Add a Venue to a marker 
+                    //Add a Venue to a marker
                     markerMap[it.key]!!.tag = it.value
                 }
 
