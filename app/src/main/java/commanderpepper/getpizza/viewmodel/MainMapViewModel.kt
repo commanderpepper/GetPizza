@@ -134,6 +134,18 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun checkForPizza(id: String): Boolean {
+        var boolean = false
+        runBlocking {
+            val result = withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
+                pizzaDatabase.pizzaDao().checkForPizzaFav(id)
+            }
+            boolean = result == 1
+        }
+        Log.d("Check", boolean.toString())
+        return boolean
+    }
+
     /**
      * Distance is about half a mile
      */

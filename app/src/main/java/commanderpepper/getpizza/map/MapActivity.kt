@@ -106,6 +106,16 @@ class MapActivity : AppCompatActivity(),
     }
 
     private fun handleInfoWindowClick(marker: Marker) {
+        val pair = marker.tag as Pair<Boolean, Venue>
+        val boolean = pair.first
+
+        if (boolean) {
+            mainMapViewModel.deletePizza(pair.second)
+        }
+
+
+        marker.remove()
+
         Toast.makeText(this, marker.title, Toast.LENGTH_SHORT).show()
     }
 
@@ -158,24 +168,25 @@ class MapActivity : AppCompatActivity(),
     private fun addMarkersToMap(): Observer<Map<String, Venue>> {
         return Observer { venueMap ->
             //Add all items from the venues hash map to the google map
-            venueMap.forEach {
+            venueMap.forEach { venue ->
                 //Makes sure that a maker is only added once
-                if (markerMap[it.key] == null) {
-                    markerMap[it.key] = map.addMarker(
+                if (markerMap[venue.key] == null) {
+                    markerMap[venue.key] = map.addMarker(
                         MarkerOptions()
                             .position(
                                 LatLng(
-                                    it.value.location.lat.toDouble(),
-                                    it.value.location.lng.toDouble()
+                                    venue.value.location.lat.toDouble(),
+                                    venue.value.location.lng.toDouble()
                                 )
                             )
-                            .title(it.value.name)
-                            .snippet(it.value.location.address)
-                    )
-                    //Add a Venue to a marker
-                    markerMap[it.key]!!.tag = it.value
-                }
+                            .title(venue.value.name)
+                            .snippet(venue.value.location.address)
 
+                    )
+                    //Add a boolean to a the marker, indicating a favorite
+                    markerMap[venue.key]!!.tag =
+                        Pair(venue.value, mainMapViewModel.checkForPizza(venue.value.id))
+                }
             }
 
             //Remove any items not inside the map of venues from the map
@@ -186,6 +197,20 @@ class MapActivity : AppCompatActivity(),
                 }
             }
         }
+    }
+
+    fun addDefaultMarker(venue: Venue) {
+        markerMap[venue.id] = map.addMarker(
+            MarkerOptions()
+                .position(
+                    LatLng(
+                        venue.location.lat.toDouble(),
+                        venue.location.lng.toDouble()
+                    )
+                )
+                .title(venue.name)
+                .snippet(venue.location.address)
+        )
     }
 
     /**

@@ -41,6 +41,50 @@ class RoomTest {
         assertThat(pizzaList.first(), CoreMatchers.equalTo(pizzaFav))
     }
 
+    @Test
+    fun addThenDeletePizza() = runBlocking {
+        val pizzaFav = PizzaFav(
+            "2",
+            1.0,
+            2.0,
+            "Address"
+        )
+
+        withContext(Dispatchers.IO) {
+            database.pizzaDao().addPizzaFav(pizzaFav)
+        }
+
+        withContext(Dispatchers.IO) {
+            database.pizzaDao().deletePizzaFav(pizzaFav)
+        }
+
+        val pizzaList = withContext(Dispatchers.IO) {
+            database.pizzaDao().getFavs()
+        }
+
+        assertThat(pizzaList.size, CoreMatchers.equalTo(0))
+    }
+
+    @Test
+    fun checkForPizza() = runBlocking {
+        val pizzaFav = PizzaFav(
+            "3",
+            1.0,
+            2.0,
+            "Address"
+        )
+
+        withContext(Dispatchers.IO) {
+            database.pizzaDao().addPizzaFav(pizzaFav)
+        }
+
+        val result = withContext(Dispatchers.IO) {
+            database.pizzaDao().checkForPizzaFav(pizzaFav.id)
+        }
+
+        assertThat(result, CoreMatchers.equalTo(1))
+    }
+
     @After
     fun cleanUp() {
         database.pizzaDao().clearTableForTesting()

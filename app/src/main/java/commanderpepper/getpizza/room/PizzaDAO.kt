@@ -14,8 +14,8 @@ interface PizzaDAO {
     @Delete
     suspend fun deletePizzaFav(pizzaFav: PizzaFav)
 
-//    @Query("SELECT id from pizzafav WHERE EXISTS(SELECT id FROM pizzafav WHERE id = :targetId)")
-//    suspend fun doesPizzaExists(targetId: String)
+    @Query("SELECT EXISTS(SELECT 1 from pizzafav WHERE id = :pizzaId)")
+    suspend fun checkForPizzaFav(pizzaId: String): Int
 
     @Query("DELETE FROM pizzafav")
     fun clearTableForTesting()
