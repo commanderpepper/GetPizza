@@ -20,6 +20,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -95,6 +96,7 @@ class MapActivity : AppCompatActivity(),
         map = googleMap
         map.setInfoWindowAdapter(PizzaInfoWindowAdapter(this))
         map.setOnInfoWindowClickListener {
+            //            Log.d("HI", "Nothing")
             handleInfoWindowClick(it)
         }
         Log.d("MapReady", "Map is ready")
@@ -110,11 +112,16 @@ class MapActivity : AppCompatActivity(),
         val boolean = pair.first
 
         if (boolean) {
+            marker.remove()
             mainMapViewModel.deletePizza(pair.second)
+
+            addDefaultMarker(pair.second)
+        } else {
+            marker.remove()
+            mainMapViewModel.addPizza(pair.second)
+
+            addFavMarker(pair.second)
         }
-
-
-        marker.remove()
 
         Toast.makeText(this, marker.title, Toast.LENGTH_SHORT).show()
     }
@@ -171,21 +178,27 @@ class MapActivity : AppCompatActivity(),
             venueMap.forEach { venue ->
                 //Makes sure that a maker is only added once
                 if (markerMap[venue.key] == null) {
-                    markerMap[venue.key] = map.addMarker(
-                        MarkerOptions()
-                            .position(
-                                LatLng(
-                                    venue.value.location.lat.toDouble(),
-                                    venue.value.location.lng.toDouble()
-                                )
-                            )
-                            .title(venue.value.name)
-                            .snippet(venue.value.location.address)
+//                    markerMap[venue.key] = map.addMarker(
+//                        MarkerOptions()
+//                            .position(
+//                                LatLng(
+//                                    venue.value.location.lat.toDouble(),
+//                                    venue.value.location.lng.toDouble()
+//                                )
+//                            )
+//                            .title(venue.value.name)
+//                            .snippet(venue.value.location.address)
+//
+//                    )
+//                    //Add a boolean to a the marker, indicating a favorite
+//                    markerMap[venue.key]!!.tag =
+//                        Pair(venue.value, mainMapViewModel.checkForPizza(venue.value.id))
+                    if (mainMapViewModel.checkForPizza(venue.key)) {
+                        addFavMarker(venue = venue.value)
+                    } else {
+                        addDefaultMarker(venue = venue.value)
+                    }
 
-                    )
-                    //Add a boolean to a the marker, indicating a favorite
-                    markerMap[venue.key]!!.tag =
-                        Pair(venue.value, mainMapViewModel.checkForPizza(venue.value.id))
                 }
             }
 
@@ -211,6 +224,30 @@ class MapActivity : AppCompatActivity(),
                 .title(venue.name)
                 .snippet(venue.location.address)
         )
+
+        markerMap[venue.id]!!.tag =
+            Pair(mainMapViewModel.checkForPizza(venue.id), venue)
+    }
+
+    fun addFavMarker(venue: Venue) {
+        markerMap[venue.id] = map.addMarker(
+            MarkerOptions()
+                .position(
+                    LatLng(
+                        venue.location.lat.toDouble(),
+                        venue.location.lng.toDouble()
+                    )
+                )
+                .title(venue.name)
+                .snippet(venue.location.address)
+                .icon(
+                    BitmapDescriptorFactory
+                        .defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
+                )
+        )
+
+        markerMap[venue.id]!!.tag =
+            Pair(mainMapViewModel.checkForPizza(venue.id), venue)
     }
 
     /**

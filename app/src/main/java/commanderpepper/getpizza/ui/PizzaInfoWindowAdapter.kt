@@ -1,6 +1,7 @@
 package commanderpepper.getpizza.ui
 
 import android.app.Activity
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -26,6 +27,8 @@ class PizzaInfoWindowAdapter(val context: Activity) : GoogleMap.InfoWindowAdapte
 
         val pair: Pair<Boolean, Venue> = marker?.tag as Pair<Boolean, Venue>
 
+        Log.d("IsFav", pair.first.toString())
+
         if (pair.first) {
             contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
                 ContextCompat.getDrawable(
@@ -33,7 +36,15 @@ class PizzaInfoWindowAdapter(val context: Activity) : GoogleMap.InfoWindowAdapte
                     android.R.drawable.star_big_on
                 )
             )
+        } else {
+            contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
+                ContextCompat.getDrawable(
+                    context,
+                    android.R.drawable.star_big_off
+                )
+            )
         }
+
 
         return contents
     }
