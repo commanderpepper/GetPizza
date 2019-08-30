@@ -54,7 +54,7 @@ class MapActivity : AppCompatActivity(),
     private lateinit var mainMapViewModel: MainMapViewModel
     private lateinit var userInitialLatLng: LatLng
 
-    private var markerMap = mutableMapOf<String, Marker>()
+    private var markerMap = mutableMapOf<String, Marker?>()
 
     /**
      * Inflates the layout, fragment and sets up the location client.
@@ -116,16 +116,12 @@ class MapActivity : AppCompatActivity(),
         if (boolean) {
             mainMapViewModel.deletePizza(pair.second)
             markerMap[pair.second.id]!!.remove()
-//            marker.remove()
             addDefaultMarker(pair.second)
         } else {
-//            marker.remove()
             mainMapViewModel.addPizza(pair.second)
             markerMap[pair.second.id]!!.remove()
             addFavMarker(pair.second)
         }
-
-        Toast.makeText(this, marker.title, Toast.LENGTH_SHORT).show()
     }
 
     private fun getCameraLatLng(): LatLng {
@@ -175,26 +171,14 @@ class MapActivity : AppCompatActivity(),
     }
 
     private fun addMarkersToMap(): Observer<Map<String, Venue>> {
+
         return Observer { venueMap ->
+            Log.d("AddMarker", venueMap.toString())
+            Log.d("VenueSize", venueMap.size.toString())
             //Add all items from the venues hash map to the google map
             venueMap.forEach { venue ->
                 //Makes sure that a maker is only added once
                 if (markerMap[venue.key] == null) {
-//                    markerMap[venue.key] = map.addMarker(
-//                        MarkerOptions()
-//                            .position(
-//                                LatLng(
-//                                    venue.value.location.lat.toDouble(),
-//                                    venue.value.location.lng.toDouble()
-//                                )
-//                            )
-//                            .title(venue.value.name)
-//                            .snippet(venue.value.location.address)
-//
-//                    )
-//                    //Add a boolean to a the marker, indicating a favorite
-//                    markerMap[venue.key]!!.tag =
-//                        Pair(venue.value, mainMapViewModel.checkForPizza(venue.value.id))
                     if (mainMapViewModel.checkForPizza(venue.key)) {
                         addFavMarker(venue = venue.value)
                     } else {
@@ -205,10 +189,13 @@ class MapActivity : AppCompatActivity(),
             }
 
             //Remove any items not inside the map of venues from the map
-            markerMap.forEach {
-                if (!venueMap.containsKey(it.key)) {
-                    it.value.remove()
-                    Log.d("Removal", it.toString())
+            val iter = markerMap.iterator()
+
+            while (iter.hasNext()) {
+                val entry = iter.next()
+                if (!venueMap.containsKey(entry.key)) {
+                    entry.value?.remove()
+                    iter.remove()
                 }
             }
         }
@@ -223,6 +210,7 @@ class MapActivity : AppCompatActivity(),
                         venue.location.lng.toDouble()
                     )
                 )
+                .alpha(.85F)
                 .title(venue.name)
                 .snippet(venue.location.address)
         )
@@ -244,7 +232,7 @@ class MapActivity : AppCompatActivity(),
                 .snippet(venue.location.address)
                 .icon(
                     BitmapDescriptorFactory
-                        .defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
+                        .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
                 )
         )
 
@@ -321,8 +309,6 @@ class MapActivity : AppCompatActivity(),
                 if (location != null) {
                     val latLng = LatLng(location.latitude, location.longitude)
                     userInitialLatLng = latLng
-//                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
-//                    map.moveCamera(cameraUpdate)
                     // Set up the view model for the first time
                     setUpViewModel()
                 } else {
