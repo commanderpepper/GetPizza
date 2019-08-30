@@ -111,15 +111,17 @@ class MapActivity : AppCompatActivity(),
         val pair = marker.tag as Pair<Boolean, Venue>
         val boolean = pair.first
 
-        if (boolean) {
-            marker.remove()
-            mainMapViewModel.deletePizza(pair.second)
+        Log.d("InfoClick", boolean.toString())
 
+        if (boolean) {
+            mainMapViewModel.deletePizza(pair.second)
+            markerMap[pair.second.id]!!.remove()
+//            marker.remove()
             addDefaultMarker(pair.second)
         } else {
-            marker.remove()
+//            marker.remove()
             mainMapViewModel.addPizza(pair.second)
-
+            markerMap[pair.second.id]!!.remove()
             addFavMarker(pair.second)
         }
 

@@ -142,7 +142,7 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
             }
             boolean = result == 1
         }
-        Log.d("Check", boolean.toString())
+        Log.d("MainCheck", boolean.toString())
         return boolean
     }
 
