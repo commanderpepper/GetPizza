@@ -2,6 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@+id/favorites"
-          android:title="Favorites!"/>
+          android:title="@string/favorite_msg_drawer"/>
 
 </menu>

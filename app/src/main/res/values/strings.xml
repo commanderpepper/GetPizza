@@ -3,4 +3,5 @@
     <string name="location_permission_text">Location permission is needed</string>
     <string name="placeHolderName">Panucci\'s Pizza</string>
     <string name="placeHolderAddress">The Future</string>
+    <string name="favorite_msg_drawer">Your Favorites!</string>
 </resources>

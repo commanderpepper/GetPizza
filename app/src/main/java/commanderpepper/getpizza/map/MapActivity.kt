@@ -2,11 +2,11 @@ package commanderpepper.getpizza.map
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -53,6 +53,7 @@ class MapActivity : AppCompatActivity(),
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var mainMapViewModel: MainMapViewModel
     private lateinit var userInitialLatLng: LatLng
+    private lateinit var navView: NavigationView
 
     private var markerMap = mutableMapOf<String, Marker?>()
 
@@ -74,15 +75,24 @@ class MapActivity : AppCompatActivity(),
 
         setupLocationClient()
 
-        drawer = findViewById(R.id.MainActivityDrawerLayout)
+//        drawer = findViewById(R.id.MainActivityDrawerLayout)
+        drawer = binding.MainActivityDrawerLayout
+        navView = binding.mainNavView
+        navView.setNavigationItemSelectedListener(this)
+
     }
 
     /**
      * Handles user events in the drawer layout
      */
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        Log.d("DrawNav", item.toString())
         when (item.itemId) {
-            R.id.favorites -> Log.d("Nav", "Clicked on fav")
+            R.id.favorites -> {
+                Log.d("DrawNav", "Clicked on fav")
+                val intent = Intent(this, FavoritesActivity::class.java)
+                startActivity(intent)
+            }
         }
         return true
     }
