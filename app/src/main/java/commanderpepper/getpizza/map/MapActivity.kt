@@ -2,6 +2,7 @@ package commanderpepper.getpizza.map
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.SearchManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -111,12 +112,29 @@ class MapActivity : AppCompatActivity(),
             //            Log.d("HI", "Nothing")
             handleInfoWindowClick(it)
         }
+        map.setOnInfoWindowLongClickListener {
+            handleLongInfoWindowClick(it)
+        }
         Log.d("MapReady", "Map is ready")
 
         getCurrentLocation()
         setupMapListeners()
 
         map.setOnCameraIdleListener(this)
+    }
+
+    /**
+     * When user long clicks on the info window it will go to a Google Search or a Web Search
+     */
+    private fun handleLongInfoWindowClick(marker: Marker) {
+        val pair = marker.tag as Pair<Boolean, Venue>
+        val text = pair.second.name + " " + pair.second.location.address
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_WEB_SEARCH
+
+            putExtra(SearchManager.QUERY, text)
+        }
+        startActivity(sendIntent)
     }
 
     /**
