@@ -4,4 +4,5 @@
     <string name="placeHolderName">Panucci\'s Pizza</string>
     <string name="placeHolderAddress">The Future</string>
     <string name="favorite_msg_drawer">Your Favorites!</string>
+    <string name="add_pizza_shops">Add some favorite shops, will ya!</string>
 </resources>

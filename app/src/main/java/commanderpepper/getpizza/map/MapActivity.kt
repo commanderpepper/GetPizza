@@ -45,6 +45,9 @@ class MapActivity : AppCompatActivity(),
     private var latitude: Double = 40.7128
     private var longitude: Double = -74.0060
 
+    /**
+     * Default zoom when using the map
+     */
     private val zoom = 15.0f
 
     private lateinit var map: GoogleMap
@@ -75,7 +78,6 @@ class MapActivity : AppCompatActivity(),
 
         setupLocationClient()
 
-//        drawer = findViewById(R.id.MainActivityDrawerLayout)
         drawer = binding.MainActivityDrawerLayout
         navView = binding.mainNavView
         navView.setNavigationItemSelectedListener(this)
@@ -117,6 +119,10 @@ class MapActivity : AppCompatActivity(),
         map.setOnCameraIdleListener(this)
     }
 
+    /**
+     * When the user clicks on the info window it sets the pizza shop as favorite and saves that to the database.
+     * Also can remove favorites.
+     */
     private fun handleInfoWindowClick(marker: Marker) {
         val pair = marker.tag as Pair<Boolean, Venue>
         val boolean = pair.first
@@ -134,6 +140,9 @@ class MapActivity : AppCompatActivity(),
         }
     }
 
+    /**
+     * Return the cameras current LatLng position
+     */
     private fun getCameraLatLng(): LatLng {
         return LatLng(map.cameraPosition.target.latitude, map.cameraPosition.target.longitude)
     }
@@ -145,6 +154,9 @@ class MapActivity : AppCompatActivity(),
         updateViewModel(getCameraLatLng())
     }
 
+    /**
+     * Called inside onCameraIdle
+     */
     private fun updateViewModel(newLocation: LatLng) {
         mainMapViewModel.updateLocationLiveData(newLocation)
     }
@@ -180,6 +192,11 @@ class MapActivity : AppCompatActivity(),
         )
     }
 
+    /**
+     * Returns an observer that will update when the pizza shops list is updated
+     * Updates the map with default and favorite locations
+     * Also removes unnecessary locations
+     */
     private fun addMarkersToMap(): Observer<Map<String, Venue>> {
 
         return Observer { venueMap ->
@@ -211,6 +228,10 @@ class MapActivity : AppCompatActivity(),
         }
     }
 
+    /**
+     * Add a default marker to the map
+     * Default markers red and are slightly transparent
+     */
     fun addDefaultMarker(venue: Venue) {
         markerMap[venue.id] = map.addMarker(
             MarkerOptions()
@@ -229,6 +250,10 @@ class MapActivity : AppCompatActivity(),
             Pair(mainMapViewModel.checkForPizza(venue.id), venue)
     }
 
+    /**
+     * Add a favorite marker to the map
+     * Fav markers are blue
+     */
     fun addFavMarker(venue: Venue) {
         markerMap[venue.id] = map.addMarker(
             MarkerOptions()

@@ -112,7 +112,8 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
                         venue.id,
                         venue.location.lat.toDouble(),
                         venue.location.lng.toDouble(),
-                        venue.location.address
+                        venue.location.address,
+                        venue.name
                     )
                 )
             }
@@ -127,7 +128,8 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
                         venue.id,
                         venue.location.lat.toDouble(),
                         venue.location.lng.toDouble(),
-                        venue.location.address
+                        venue.location.address,
+                        venue.name
                     )
                 )
             }
