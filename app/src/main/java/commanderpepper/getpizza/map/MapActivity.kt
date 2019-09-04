@@ -38,7 +38,8 @@ import kotlinx.coroutines.InternalCoroutinesApi
 class MapActivity : AppCompatActivity(),
     OnMapReadyCallback,
     NavigationView.OnNavigationItemSelectedListener,
-    GoogleMap.OnCameraIdleListener {
+    GoogleMap.OnCameraIdleListener,
+    ActivityCompat.OnRequestPermissionsResultCallback {
 
     /**
      * Longitude and Latitude of New York City
@@ -169,7 +170,13 @@ class MapActivity : AppCompatActivity(),
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     override fun onCameraIdle() {
-        updateViewModel(getCameraLatLng())
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            updateViewModel(getCameraLatLng())
+        }
     }
 
     /**
@@ -233,14 +240,18 @@ class MapActivity : AppCompatActivity(),
                 }
             }
 
-            //Remove any items not inside the map of venues from the map
+            //Remove some items not inside the map of venues from the map
             val iter = markerMap.iterator()
 
-            while (iter.hasNext()) {
-                val entry = iter.next()
-                if (!venueMap.containsKey(entry.key)) {
-                    entry.value?.remove()
-                    iter.remove()
+            if (markerMap.size >= 200) {
+                var i = 0
+                while (iter.hasNext() && i <= 50) {
+                    val entry = iter.next()
+                    if (!venueMap.containsKey(entry.key)) {
+                        entry.value?.remove()
+                        iter.remove()
+                    }
+                    i++
                 }
             }
         }
@@ -380,6 +391,21 @@ class MapActivity : AppCompatActivity(),
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
             REQUEST_LOCATION
         )
+    }
+
+    /**
+     * Callback for user response to the permission request
+     */
+    @InternalCoroutinesApi
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        Log.d("Permi", grantResults.toString())
+        if (grantResults.first() == PackageManager.PERMISSION_GRANTED) {
+            getCurrentLocation()
+        }
     }
 
     companion object {
