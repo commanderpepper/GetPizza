@@ -7,13 +7,13 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     defaultConfig {
         applicationId "commanderpepper.getpizza"
         minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 3
-        versionName "2.01"
+        targetSdkVersion 29
+        versionCode 4
+        versionName "2.02"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

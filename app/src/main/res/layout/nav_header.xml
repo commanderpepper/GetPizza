@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
         android:orientation="vertical">
 
     <TextView
@@ -11,8 +10,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="15dp"
             android:layout_marginBottom="15dp"
-            android:text="The secret sauce!"
-            android:textSize="24sp"
-            android:textColor="@color/cardview_light_background"/>
+            android:text="@string/the_secret_sauce"
+            android:textSize="24sp"/>
 
 </LinearLayout>

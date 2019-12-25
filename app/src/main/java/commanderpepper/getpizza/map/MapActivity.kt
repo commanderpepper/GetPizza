@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
@@ -42,12 +41,6 @@ class MapActivity : AppCompatActivity(),
     ActivityCompat.OnRequestPermissionsResultCallback {
 
     /**
-     * Longitude and Latitude of New York City
-     */
-    private var latitude: Double = 40.7128
-    private var longitude: Double = -74.0060
-
-    /**
      * Default zoom when using the map
      */
     private val zoom = 15.0f
@@ -55,7 +48,6 @@ class MapActivity : AppCompatActivity(),
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var drawer: DrawerLayout
-    private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var mainMapViewModel: MainMapViewModel
     private lateinit var userInitialLatLng: LatLng
     private lateinit var navView: NavigationView
@@ -261,7 +253,7 @@ class MapActivity : AppCompatActivity(),
      * Add a default marker to the map
      * Default markers red and are slightly transparent
      */
-    fun addDefaultMarker(venue: Venue) {
+    private fun addDefaultMarker(venue: Venue) {
         markerMap[venue.id] = map.addMarker(
             MarkerOptions()
                 .position(
@@ -283,7 +275,7 @@ class MapActivity : AppCompatActivity(),
      * Add a favorite marker to the map
      * Fav markers are blue
      */
-    fun addFavMarker(venue: Venue) {
+    private fun addFavMarker(venue: Venue) {
         markerMap[venue.id] = map.addMarker(
             MarkerOptions()
                 .position(

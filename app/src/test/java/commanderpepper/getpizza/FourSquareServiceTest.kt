@@ -13,7 +13,7 @@ import org.junit.Before
 import org.junit.Test
 
 class FourSquareServiceTest {
-    var client: FourSquareService? = null
+    private var client: FourSquareService? = null
 
     @Before
     fun init() {

@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.room.entity.PizzaFav
 
-class FavoriteAdapter(val list: List<PizzaFav>) : RecyclerView.Adapter<FavoriteViewHolder>() {
+class FavoriteAdapter(private val list: List<PizzaFav>) : RecyclerView.Adapter<FavoriteViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FavoriteViewHolder {
         return FavoriteViewHolder(

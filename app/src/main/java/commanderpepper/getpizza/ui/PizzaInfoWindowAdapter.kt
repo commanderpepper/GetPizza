@@ -1,5 +1,6 @@
 package commanderpepper.getpizza.ui
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.util.Log
 import android.view.View
@@ -11,15 +12,12 @@ import com.google.android.gms.maps.model.Marker
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.foursquaremodels.Venue
 
-class PizzaInfoWindowAdapter(val context: Activity) : GoogleMap.InfoWindowAdapter {
+class PizzaInfoWindowAdapter(private val context: Activity) : GoogleMap.InfoWindowAdapter {
 
-    private val contents: View
-
-    init {
-        contents = context.layoutInflater.inflate(
-            R.layout.content_bookmark_info, null
-        )
-    }
+    @SuppressLint("InflateParams")
+    private val contents: View = context.layoutInflater.inflate(
+        R.layout.content_bookmark_info, null
+    )
 
     override fun getInfoContents(marker: Marker?): View {
         contents.findViewById<TextView>(R.id.title).text = marker?.title ?: ""

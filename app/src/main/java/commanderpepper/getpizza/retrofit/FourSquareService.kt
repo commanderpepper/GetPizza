@@ -4,12 +4,8 @@ import commanderpepper.getpizza.foursquaremodels.SearchResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.create
 import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.Headers
 import retrofit2.http.Query
 import java.text.SimpleDateFormat
 import java.util.*
@@ -34,25 +30,7 @@ interface FourSquareService {
         @Query("limit")
         limit: Int = 50,
         @Query("v")
-        v: String = SimpleDateFormat("yyyyMMdd").format(Date())
-    ): SearchResponse
-
-    @GET("venues/search")
-    suspend fun searchWithTag(
-        @Query("ll")
-        ll: String,
-        @Query("query")
-        query: String,
-        @Query("intent")
-        intent: String = "browse",
-        @Query("radius")
-        radius: Int = 3500,
-        @Query("client_id")
-        client_id: String = Constants.CLIENT_ID,
-        @Query("client_secret")
-        client_secret: String = Constants.CLIENT_SECRET,
-        @Query("v")
-        v: String = "20190801"
+        v: String = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
     ): SearchResponse
 
     companion object {
