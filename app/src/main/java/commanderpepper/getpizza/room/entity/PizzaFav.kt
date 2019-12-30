@@ -10,5 +10,6 @@ data class PizzaFav(
     val lat: Double,
     val lng: Double,
     val address: String,
-    val name: String = ""
+    val name: String = "",
+    var favorite: Int = 0
 )

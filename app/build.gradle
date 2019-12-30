@@ -69,6 +69,9 @@ dependencies {
     kapt "android.arch.persistence.room:compiler:1.1.1"
     kapt "androidx.room:room-compiler:$room_version"
 
-    // debugImplementation because LeakCanary should only run in debug builds.
+    //debugImplementation because LeakCanary should only run in debug builds.
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.0-beta-3'
+
+    //TIMBER!
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 }

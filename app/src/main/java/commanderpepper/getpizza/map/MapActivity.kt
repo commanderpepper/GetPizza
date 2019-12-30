@@ -14,6 +14,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -28,10 +29,13 @@ import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
 import commanderpepper.getpizza.foursquaremodels.Venue
+import commanderpepper.getpizza.room.entity.PizzaFav
 import commanderpepper.getpizza.ui.PizzaInfoWindowAdapter
 import commanderpepper.getpizza.viewmodel.MainMapViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 
 class MapActivity : AppCompatActivity(),
@@ -53,6 +57,10 @@ class MapActivity : AppCompatActivity(),
     private lateinit var navView: NavigationView
 
     private var markerMap = mutableMapOf<String, Marker?>()
+
+    private var pizzaMap = mutableMapOf<String, PizzaFav>()
+
+    private val scope = lifecycleScope
 
     /**
      * Inflates the layout, fragment and sets up the location client.
@@ -175,7 +183,8 @@ class MapActivity : AppCompatActivity(),
      * Called inside onCameraIdle
      */
     private fun updateViewModel(newLocation: LatLng) {
-        mainMapViewModel.updateLocationLiveData(newLocation)
+//        mainMapViewModel.updateLocationLiveData(newLocation)
+        mainMapViewModel.setLocationFlow(newLocation)
     }
 
     /**
@@ -191,22 +200,41 @@ class MapActivity : AppCompatActivity(),
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
 
-        mainMapViewModel.latLngLiveData.observe(mapActivity, Observer {
-            mainMapViewModel.setLocations(it)
-        })
+        //Populate the data from this flow into the map
+        mainMapViewModel.flowOfPizzaFav.onEach { pizzaList ->
+            val map = pizzaList.map { it.id to it }.toMap().toMutableMap()
+            pizzaMap.putAll(map)
+        }.launchIn(scope)
 
-        if (mainMapViewModel.latLngLiveData.value == null) {
+        //Whenever a new location is given, update the location.
+        mainMapViewModel.locationFlow.onEach {
+            mainMapViewModel.updateLocationLiveData(it)
+        }.launchIn(lifecycleScope)
 
-            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(userInitialLatLng, zoom)
-            map.moveCamera(cameraUpdate)
-            mainMapViewModel.setLocationLiveData(userInitialLatLng)
+        mainMapViewModel.setLocationFlow(userInitialLatLng)
+
+//        mainMapViewModel.latLngLiveData.observe(mapActivity, Observer {
+//            mainMapViewModel.setLocations(it)
+//        })
+//
+//        if (mainMapViewModel.latLngLiveData.value == null) {
+//
+//            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(userInitialLatLng, zoom)
+//            map.moveCamera(cameraUpdate)
+//            mainMapViewModel.setLocationLiveData(userInitialLatLng)
+//        }
+//
+//        //Whenever the set of locations changes, call the add markers function
+//        mainMapViewModel.locations?.observe(
+//            mapActivity,
+//            addMarkersToMap()
+//        )
+    }
+
+    private fun makeMarkersFromPizzaFav(){
+        pizzaMap.forEach {
+            
         }
-
-        //Whenever the set of locations changes, call the add markers function
-        mainMapViewModel.locations?.observe(
-            mapActivity,
-            addMarkersToMap()
-        )
     }
 
     /**
