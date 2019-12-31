@@ -28,6 +28,12 @@ abstract class PizzaDatabase : RoomDatabase() {
             }
         }
 
+//        private val MIGRATION_3_4 = object : Migration(3,4) {
+//            override fun migrate(database: SupportSQLiteDatabase) {
+//                database.execSQL("ALTER TABLE pizzafav COLUMN '' FOR address")
+//            }
+//        }
+//ALTER TABLE Employee ADD DEFAULT 'SANDNES' FOR CityBorn
         @Volatile
         private var instance: PizzaDatabase? = null
 

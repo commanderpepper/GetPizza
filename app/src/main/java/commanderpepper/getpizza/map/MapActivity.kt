@@ -34,6 +34,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import timber.log.Timber
 
 /**
  * Default zoom when using the map
@@ -48,7 +49,7 @@ private const val defaultTransparency = .85F
 /**
  * Max marker count
  */
-private const val maxMarkerCount = 300
+private const val maxMarkerCount = 200
 
 class MapActivity : AppCompatActivity(),
     OnMapReadyCallback,
@@ -158,13 +159,13 @@ class MapActivity : AppCompatActivity(),
         if (boolean) {
             markerMap[pair.second.id]!!.remove()
             mainMapViewModel.addPizza(pair.second.apply {
-                favorite = 0
+                favorite = 1
             })
 //            addDefaultMarkerFromPizzaFav(pair.second)
         } else {
             markerMap[pair.second.id]!!.remove()
             mainMapViewModel.addPizza(pair.second.apply {
-                favorite = 1
+                favorite = 0
             })
 //            mainMapViewModel.addPizza(pair.second)
 //            markerMap[pair.second.id]!!.remove()
@@ -197,7 +198,9 @@ class MapActivity : AppCompatActivity(),
      */
     private fun updateViewModel(newLocation: LatLng) {
 //        mainMapViewModel.updateLocationLiveData(newLocation)
-        mainMapViewModel.setLocationFlow(newLocation)
+//        mainMapViewModel.setLocationFlow(newLocation)
+        mainMapViewModel.updateLocationLiveData(newLocation)
+        removeMarkers()
     }
 
     /**
@@ -226,23 +229,6 @@ class MapActivity : AppCompatActivity(),
         mainMapViewModel.locationFlow.onEach {
             mainMapViewModel.updateLocationLiveData(it)
         }.launchIn(lifecycleScope)
-
-//        mainMapViewModel.latLngLiveData.observe(mapActivity, Observer {
-//            mainMapViewModel.setLocations(it)
-//        })
-//
-//        if (mainMapViewModel.latLngLiveData.value == null) {
-//
-//            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(userInitialLatLng, zoom)
-//            map.moveCamera(cameraUpdate)
-//            mainMapViewModel.setLocationLiveData(userInitialLatLng)
-//        }
-//
-//        //Whenever the set of locations changes, call the add markers function
-//        mainMapViewModel.locations?.observe(
-//            mapActivity,
-//            addMarkersToMap()
-//        )
     }
 
     private fun makeMarkersFromPizzaFav() {
@@ -255,7 +241,7 @@ class MapActivity : AppCompatActivity(),
                 }
             }
         }
-        removeMarkers()
+//        removeMarkers()
     }
 
     private fun removeMarkers() {
@@ -266,7 +252,8 @@ class MapActivity : AppCompatActivity(),
             var i = 0
             while (iter.hasNext() && i <= 50) {
                 val entry = iter.next()
-                if (!pizzaMap.containsKey(entry.key)) {
+                if (pizzaMap.containsKey(entry.key)) {
+                    Timber.d("Match found")
                     entry.value?.remove()
                     iter.remove()
                 }
@@ -280,62 +267,11 @@ class MapActivity : AppCompatActivity(),
      * Updates the map with default and favorite locations
      * Also removes unnecessary locations
      */
-//    private fun addMarkersToMap(): Observer<Map<String, Venue>> {
-//
-//        return Observer { venueMap ->
-//            Log.d("AddMarker", venueMap.toString())
-//            Log.d("VenueSize", venueMap.size.toString())
-//            //Add all items from the venues hash map to the google map
-//            venueMap.forEach { venue ->
-//                //Makes sure that a maker is only added once
-//                if (markerMap[venue.key] == null) {
-//                    if (mainMapViewModel.checkForPizza(venue.key)) {
-//                        addFavMarker(venue = venue.value)
-//                    } else {
-//                        addDefaultMarker(venue = venue.value)
-//                    }
-//
-//                }
-//            }
-//
-//            //Remove some items not inside the map of venues from the map
-//            val iter = markerMap.iterator()
-//
-//            if (markerMap.size >= 200) {
-//                var i = 0
-//                while (iter.hasNext() && i <= 50) {
-//                    val entry = iter.next()
-//                    if (!venueMap.containsKey(entry.key)) {
-//                        entry.value?.remove()
-//                        iter.remove()
-//                    }
-//                    i++
-//                }
-//            }
-//        }
-//    }
 
     /**
      * Add a default marker to the map
      * Default markers red and are slightly transparent
      */
-//    private fun addDefaultMarker(venue: Venue) {
-//        markerMap[venue.id] = map.addMarker(
-//            MarkerOptions()
-//                .position(
-//                    LatLng(
-//                        venue.location.lat.toDouble(),
-//                        venue.location.lng.toDouble()
-//                    )
-//                )
-//                .alpha(.85F)
-//                .title(venue.name)
-//                .snippet(venue.location.address)
-//        )
-//
-//        markerMap[venue.id]!!.tag =
-//            Pair(mainMapViewModel.checkForPizza(venue.id), venue)
-//    }
 
     private fun addDefaultMarkerFromPizzaFav(pizzaFav: PizzaFav) {
         markerMap[pizzaFav.id] = map.addMarker(
@@ -377,26 +313,6 @@ class MapActivity : AppCompatActivity(),
      * Add a favorite marker to the map
      * Fav markers are blue
      */
-//    private fun addFavMarker(venue: Venue) {
-//        markerMap[venue.id] = map.addMarker(
-//            MarkerOptions()
-//                .position(
-//                    LatLng(
-//                        venue.location.lat.toDouble(),
-//                        venue.location.lng.toDouble()
-//                    )
-//                )
-//                .title(venue.name)
-//                .snippet(venue.location.address)
-//                .icon(
-//                    BitmapDescriptorFactory
-//                        .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
-//                )
-//        )
-//
-//        markerMap[venue.id]!!.tag =
-//            Pair(mainMapViewModel.checkForPizza(venue.id), venue)
-//    }
 
     /**
      * Calls stuff when the map moves

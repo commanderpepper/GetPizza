@@ -11,7 +11,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class PizzaRepository private constructor(context: Context) {
 
@@ -78,14 +80,16 @@ class PizzaRepository private constructor(context: Context) {
         return pizzaDatabase
             .pizzaDao()
             .getFlowOfFavorites()
+            .distinctUntilChanged()
     }
 
     private fun Venue.getPizza(): PizzaFav {
+        Timber.d(this.toString())
         return PizzaFav(
             this.id,
             this.location.lat.toDouble(),
             this.location.lng.toDouble(),
-            this.location.address,
+            if (this.location.address != null) this.location.address else "",
             this.name
         )
     }

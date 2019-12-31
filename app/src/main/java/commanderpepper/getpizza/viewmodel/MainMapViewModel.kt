@@ -41,12 +41,6 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
             Timber.d("The camera moved")
             setLocationFlow(latlng)
             repository.getPizzas(latlng)
-//            repository.getMorePizzas(latlng)
-//            Log.d("UVM", "The camera moved")
-//            if (compareLatLng(latlng, locationFlow.single())) {
-//                setLocationFlow(latlng)
-//                repository.getMorePizzas(latlng)
-//            }
         }
     }
 
