@@ -6,11 +6,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import commanderpepper.getpizza.repository.PizzaRepository
+import commanderpepper.getpizza.room.entity.PizzaFav
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.abs
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
@@ -27,7 +27,7 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
 
     lateinit var locationFlow: Flow<LatLng>
 
-    val flowOfPizzaFav = repository.getPizzas().distinctUntilChanged()
+    val flowOfPizzaFav = repository.getPizzas()
 
     fun setLocationFlow(latlng: LatLng) {
         location = latlng
@@ -38,12 +38,20 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateLocationLiveData(latlng: LatLng) {
         viewModelScope.launch {
-            if (compareLatLng(latlng, locationFlow.single())) {
-                Log.d("UVM", "The camera moved")
-                setLocationFlow(latlng)
-                repository.getMorePizzas(latlng)
-            }
+            Timber.d("The camera moved")
+            setLocationFlow(latlng)
+            repository.getPizzas(latlng)
+//            repository.getMorePizzas(latlng)
+//            Log.d("UVM", "The camera moved")
+//            if (compareLatLng(latlng, locationFlow.single())) {
+//                setLocationFlow(latlng)
+//                repository.getMorePizzas(latlng)
+//            }
         }
+    }
+
+    fun addPizza(pizzaFav: PizzaFav) {
+        repository.addPizza(pizzaFav)
     }
 
 //    /**

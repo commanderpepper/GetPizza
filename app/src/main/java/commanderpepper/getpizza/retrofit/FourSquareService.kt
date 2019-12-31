@@ -18,7 +18,7 @@ interface FourSquareService {
         @Query("ll")
         ll: String,
         @Query("categoryId")
-        categoryId: String = "4bf58dd8d48988d1ca941735",
+        categoryId: String,
         @Query("intent")
         intent: String = "browse",
         @Query("radius")
@@ -30,7 +30,7 @@ interface FourSquareService {
         @Query("limit")
         limit: Int = 50,
         @Query("v")
-        v: String = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
+        v: String = SimpleDateFormat("yyyyMMdd").format(Date())
     ): SearchResponse
 
     companion object {

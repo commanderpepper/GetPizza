@@ -11,26 +11,41 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 class PizzaRepository private constructor(context: Context) {
 
     private val job = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.Default + job)
+    private val scope = CoroutineScope(Dispatchers.IO + job)
 
     private val fourSquareService: FourSquareService = FourSquareService.create()
     private val pizzaDatabase = PizzaDatabase.getInstance(context)
 
-    private fun addPizza(pizzaFav: PizzaFav) {
+    fun addPizza(pizzaFav: PizzaFav) {
         scope.launch {
             pizzaDatabase.pizzaDao().addPizzaFav(pizzaFav)
         }
     }
 
+    suspend fun getPizzas(latLng: LatLng) {
+        val searchResponse = fourSquareService.searchForPizzas(
+            latLng.concatString(),
+            "4bf58dd8d48988d1ca941735"
+        )
+        val locations = searchResponse.response.venues.map {
+            it.getPizza()
+        }
+        locations.forEach {
+            addPizza(it)
+        }
+    }
+
     fun getMorePizzas(latLng: LatLng) {
         scope.launch {
-            val searchResponse = fourSquareService.searchForPizzas(latLng.toString())
+            val searchResponse = fourSquareService.searchForPizzas(
+                latLng.concatString(),
+                "4bf58dd8d48988d1ca941735"
+            )
             val locations = searchResponse.response.venues.map {
                 it.getPizza()
             }
@@ -40,13 +55,13 @@ class PizzaRepository private constructor(context: Context) {
         }
     }
 
-    fun LatLng.toString(): String {
+    fun LatLng.concatString(): String {
         return "${this.latitude},${this.longitude}"
     }
 
     private fun getResultFromNetwork(ll: String) {
         scope.launch {
-            fourSquareService.searchForPizzas(ll)
+            fourSquareService.searchForPizzas(ll, "4bf58dd8d48988d1ca941735")
         }
     }
 
@@ -63,7 +78,6 @@ class PizzaRepository private constructor(context: Context) {
         return pizzaDatabase
             .pizzaDao()
             .getFlowOfFavorites()
-            .flowOn(Dispatchers.Default)
     }
 
     private fun Venue.getPizza(): PizzaFav {
