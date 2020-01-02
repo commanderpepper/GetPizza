@@ -29,23 +29,33 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
 
     val flowOfPizzaFav = repository.getPizzas()
 
-    fun setLocationFlow(latlng: LatLng) {
-        location = latlng
+    init {
         locationFlow = flow {
             emit(location)
         }
     }
 
+    fun setLocationFlow(latlng: LatLng) {
+//        locationFlow = flow {
+//            emit(location)
+//        }
+    }
+
     fun updateLocationLiveData(latlng: LatLng) {
         viewModelScope.launch {
             Timber.d("The camera moved")
-            setLocationFlow(latlng)
-            repository.getPizzas(latlng)
+            if (compareLatLng(latlng, location)) {
+                location = latlng
+                setLocationFlow(latlng)
+                repository.getPizzas(latlng)
+            }
         }
     }
 
     fun addPizza(pizzaFav: PizzaFav) {
-        repository.addPizza(pizzaFav)
+        viewModelScope.launch {
+            repository.addPizza(pizzaFav)
+        }
     }
 
 //    /**

@@ -68,8 +68,6 @@ class MapActivity : AppCompatActivity(),
 
     private var pizzaMap = mutableMapOf<String, PizzaFav>()
 
-    private val scope = lifecycleScope
-
     /**
      * Inflates the layout, fragment and sets up the location client.
      * This also sets up the ViewModel.
@@ -152,24 +150,24 @@ class MapActivity : AppCompatActivity(),
      */
     private fun handleInfoWindowClick(marker: Marker) {
         val pair = marker.tag as Pair<Boolean, PizzaFav>
-        val boolean = pair.first
+        val favoriteStatus = pair.first
+        val pizzaFav = pair.second
 
-        Log.d("InfoClick", boolean.toString())
+        Log.d("InfoClick", favoriteStatus.toString())
 
-        if (boolean) {
-            markerMap[pair.second.id]!!.remove()
-            mainMapViewModel.addPizza(pair.second.apply {
+        // Check if this is a favorite or not. If this is not a favorite, make it one.
+        if (!favoriteStatus) {
+            markerMap[pizzaFav.id]!!.remove()
+            markerMap.remove(pizzaFav.id)
+            mainMapViewModel.addPizza(pizzaFav.apply {
                 favorite = 1
             })
-//            addDefaultMarkerFromPizzaFav(pair.second)
         } else {
-            markerMap[pair.second.id]!!.remove()
-            mainMapViewModel.addPizza(pair.second.apply {
+            markerMap[pizzaFav.id]!!.remove()
+            markerMap.remove(pizzaFav.id)
+            mainMapViewModel.addPizza(pizzaFav.apply {
                 favorite = 0
             })
-//            mainMapViewModel.addPizza(pair.second)
-//            markerMap[pair.second.id]!!.remove()
-//            addFavoriteMarkerFromPizzaFav(pair.second)
         }
     }
 
@@ -200,7 +198,7 @@ class MapActivity : AppCompatActivity(),
 //        mainMapViewModel.updateLocationLiveData(newLocation)
 //        mainMapViewModel.setLocationFlow(newLocation)
         mainMapViewModel.updateLocationLiveData(newLocation)
-        removeMarkers()
+//        removeMarkers()
     }
 
     /**
@@ -223,7 +221,7 @@ class MapActivity : AppCompatActivity(),
             val map = pizzaList.map { it.id to it }.toMap().toMutableMap()
             pizzaMap.putAll(map)
             makeMarkersFromPizzaFav()
-        }.launchIn(scope)
+        }.launchIn(lifecycleScope)
 
         //Whenever a new location is given, update the location.
         mainMapViewModel.locationFlow.onEach {
@@ -241,9 +239,11 @@ class MapActivity : AppCompatActivity(),
                 }
             }
         }
-//        removeMarkers()
     }
 
+    /**
+     * Removes markes from the @markerMap
+     */
     private fun removeMarkers() {
         //Remove some items not inside the map of venues from the map
         val iter = markerMap.iterator()
@@ -262,17 +262,11 @@ class MapActivity : AppCompatActivity(),
         }
     }
 
-    /**
-     * Returns an observer that will update when the pizza shops list is updated
-     * Updates the map with default and favorite locations
-     * Also removes unnecessary locations
-     */
 
     /**
      * Add a default marker to the map
      * Default markers red and are slightly transparent
      */
-
     private fun addDefaultMarkerFromPizzaFav(pizzaFav: PizzaFav) {
         markerMap[pizzaFav.id] = map.addMarker(
             MarkerOptions()
@@ -286,9 +280,13 @@ class MapActivity : AppCompatActivity(),
                 .title(pizzaFav.name)
                 .snippet(pizzaFav.address)
         )
-        markerMap[pizzaFav.id]!!.tag = Pair(pizzaFav.favorite == 0, pizzaFav)
+        markerMap[pizzaFav.id]!!.tag = Pair(pizzaFav.favorite == 1, pizzaFav)
     }
 
+    /**
+     * Add a favorite marker to the map
+     * Fav markers are blue
+     */
     private fun addFavoriteMarkerFromPizzaFav(pizzaFav: PizzaFav) {
         markerMap[pizzaFav.id] = map.addMarker(
             MarkerOptions()
@@ -298,7 +296,6 @@ class MapActivity : AppCompatActivity(),
                         pizzaFav.lng
                     )
                 )
-                .alpha(defaultTransparency)
                 .title(pizzaFav.name)
                 .snippet(pizzaFav.address)
                 .icon(
@@ -306,13 +303,8 @@ class MapActivity : AppCompatActivity(),
                         .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
                 )
         )
-        markerMap[pizzaFav.id]!!.tag = Pair(pizzaFav.favorite == 0, pizzaFav)
+        markerMap[pizzaFav.id]!!.tag = Pair(pizzaFav.favorite == 1, pizzaFav)
     }
-
-    /**
-     * Add a favorite marker to the map
-     * Fav markers are blue
-     */
 
     /**
      * Calls stuff when the map moves

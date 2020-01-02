@@ -33,6 +33,27 @@ interface FourSquareService {
         v: String = SimpleDateFormat("yyyyMMdd").format(Date())
     ): SearchResponse
 
+    //    ("client_id:${Constants.CLIENT_ID}", "client_secret:${Constants.CLIENT_SECRET}")
+    @GET("venues/search")
+    suspend fun searchForTenPizzas(
+        @Query("ll")
+        ll: String,
+        @Query("categoryId")
+        categoryId: String,
+        @Query("intent")
+        intent: String = "browse",
+        @Query("radius")
+        radius: Int = 3500,
+        @Query("client_id")
+        client_id: String = Constants.CLIENT_ID,
+        @Query("client_secret")
+        client_secret: String = Constants.CLIENT_SECRET,
+        @Query("limit")
+        limit: Int = 10,
+        @Query("v")
+        v: String = SimpleDateFormat("yyyyMMdd").format(Date())
+    ): SearchResponse
+
     companion object {
         fun create(): FourSquareService {
             val interceptor: HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
