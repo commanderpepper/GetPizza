@@ -48,6 +48,9 @@ class PizzaRepository private constructor(context: Context) {
      * Get pizzas from the network and store those results
      */
     suspend fun getPizzas(latLng: LatLng) {
+
+        val pizzers = pizzaDatabase.pizzaDao().getPizzasNearLocation(latLng.latitude)
+        Timber.d("Pizzers are $pizzers")
         val searchResponse = fourSquareService.searchForPizzas(
             latLng.concatString(),
             categoryId
@@ -82,7 +85,7 @@ class PizzaRepository private constructor(context: Context) {
      * Extension function to make a PizzaFav from a Venue object
      */
     private fun Venue.getPizza(): PizzaFav {
-        Timber.d(this.toString())
+//        Timber.d(this.toString())
         return PizzaFav(
             this.id,
             this.location.lat.toDouble(),

@@ -214,7 +214,7 @@ class MapActivity : AppCompatActivity(),
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
 
-        mainMapViewModel.setLocationFlow(userInitialLatLng)
+//        mainMapViewModel.setLocationFlow(userInitialLatLng)
 
         //Populate the data from this flow into the map
         mainMapViewModel.flowOfPizzaFav.onEach { pizzaList ->
