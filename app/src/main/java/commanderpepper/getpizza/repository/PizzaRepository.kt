@@ -63,7 +63,6 @@ class PizzaRepository private constructor(context: Context) {
         }
     }
 
-
     /**
      * Take a LatLng object and return a string from Lat,Lng
      */

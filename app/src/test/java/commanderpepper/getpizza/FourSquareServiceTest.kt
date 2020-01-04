@@ -15,6 +15,7 @@ import org.junit.Test
 class FourSquareServiceTest {
     private var client: FourSquareService? = null
 
+    // I should think how this clien is created
     @Before
     fun init() {
         client = FourSquareService.create()
