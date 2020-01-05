@@ -1,6 +1,7 @@
 package commanderpepper.getpizza.repository
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import com.google.android.gms.maps.model.LatLng
 import commanderpepper.getpizza.foursquaremodels.Venue
 import commanderpepper.getpizza.retrofit.FourSquareService
@@ -11,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Category ID for Pizza!
@@ -49,8 +49,8 @@ class PizzaRepository private constructor(context: Context) {
      */
     suspend fun getPizzas(latLng: LatLng) {
 
-        val pizzers = pizzaDatabase.pizzaDao().getPizzasNearLocation(latLng.latitude)
-        Timber.d("Pizzers are $pizzers")
+//        val pizzers = pizzaDatabase.pizzaDao().getPizzasNearLocation(latLng.latitude)
+//        Timber.d("Pizzers are $pizzers")
         val searchResponse = fourSquareService.searchForPizzas(
             latLng.concatString(),
             categoryId
@@ -79,6 +79,24 @@ class PizzaRepository private constructor(context: Context) {
             .getFlowOfFavorites()
 //            .distinctUntilChanged()
     }
+
+    @VisibleForTesting
+    suspend fun getPizzaLocation(lowerBound: Double, upperBound: Double) =
+        pizzaDatabase.pizzaDao().getPizzasNearLocation(lowerBound, upperBound)
+
+    @VisibleForTesting
+    suspend fun getPizzaLocationUsingLatAndLng(
+        lowerLatBound: Double,
+        upperLatBound: Double,
+        lowerLngBound: Double,
+        upperLngBound: Double
+    ) =
+        pizzaDatabase.pizzaDao().getPizzasNearLocationUsingLatAndLng(
+            lowerLatBound,
+            upperLatBound,
+            lowerLngBound,
+            upperLngBound
+        )
 
     /**
      * Extension function to make a PizzaFav from a Venue object
