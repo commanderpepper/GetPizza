@@ -19,6 +19,9 @@ interface PizzaDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addPizzaFav(pizzaFav: PizzaFav): Long
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun addPizzaFavIfNoneExists(pizzaFav: PizzaFav): Long
+
     @Delete
     suspend fun deletePizzaFav(pizzaFav: PizzaFav)
 

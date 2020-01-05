@@ -45,6 +45,15 @@ class PizzaRepository private constructor(context: Context) {
     }
 
     /**
+     * Add a pizza to the database if that pizza fav isn't in the database
+     */
+    suspend fun addPizzaIfNoneExists(pizzaFav: PizzaFav) {
+        scope.launch {
+            pizzaDatabase.pizzaDao().addPizzaFavIfNoneExists(pizzaFav)
+        }
+    }
+
+    /**
      * Get pizzas from the network and store those results
      */
     suspend fun getPizzas(latLng: LatLng) {
@@ -97,6 +106,11 @@ class PizzaRepository private constructor(context: Context) {
             lowerLngBound,
             upperLngBound
         )
+
+    /**
+     * Get all PizzaFavs with a favorite value of 1
+     */
+    suspend fun getFavorites() = pizzaDatabase.pizzaDao().getFavs()
 
     /**
      * Extension function to make a PizzaFav from a Venue object

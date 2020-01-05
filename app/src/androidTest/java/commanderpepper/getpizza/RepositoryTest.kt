@@ -127,8 +127,8 @@ class RepositoryTest {
 
         val testPizza3 = PizzaFav(
             "65",
-            lat+.0005,
-            lng+.0005
+            lat + .0005,
+            lng + .0005
         )
 
         val testPizza2 = PizzaFav(
@@ -149,5 +149,34 @@ class RepositoryTest {
         )
         println("$list")
         assertThat(2, CoreMatchers.equalTo(list.size))
+    }
+
+    @Test
+    fun test_if_insertion_replaces_values() = runBlocking {
+        val fav_pizza = PizzaFav(
+            "88",
+            100.0,
+            100.0,
+            "place",
+            "name",
+            1
+        )
+
+        val no_fav_pizza = PizzaFav(
+            "88",
+            100.0,
+            100.0,
+            "place",
+            "name",
+            0
+        )
+
+        pizzaRepository.addPizzaIfNoneExists(fav_pizza)
+        pizzaRepository.addPizzaIfNoneExists(no_fav_pizza)
+
+        val list = pizzaRepository.getFavorites()
+        println("$list")
+        assertThat(1, CoreMatchers.equalTo(list.size))
+
     }
 }
