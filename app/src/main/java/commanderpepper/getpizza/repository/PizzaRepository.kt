@@ -12,11 +12,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * Category ID for Pizza!
  */
 private const val categoryId = "4bf58dd8d48988d1ca941735"
+
+/**
+ * About a mile in degrees if I did my math right
+ */
+private const val distanceThreshold = 0.018181818
+
+/**
+ * Cache limit, if the number of pizza shops is less than the cache limit within a certain area then ask the network for more.
+ */
+private const val cacheLimit = 25
 
 /**
  * This will get data from the UI to use, the UI should not be aware of the source of the data
@@ -58,17 +69,36 @@ class PizzaRepository private constructor(context: Context) {
      */
     suspend fun getPizzas(latLng: LatLng) {
 
-//        val pizzers = pizzaDatabase.pizzaDao().getPizzasNearLocation(latLng.latitude)
-//        Timber.d("Pizzers are $pizzers")
-        val searchResponse = fourSquareService.searchForPizzas(
-            latLng.concatString(),
-            categoryId
+        Timber.d("Lat and Lng are $latLng")
+
+        val lowerLatBound = latLng.latitude - distanceThreshold
+        val upperLatBound = latLng.latitude + distanceThreshold
+        val lowerLngBound = latLng.longitude - distanceThreshold
+        val upperLngBound = latLng.longitude + distanceThreshold
+
+        val pizzers = pizzaDatabase.pizzaDao().getPizzasNearLocationUsingLatAndLng(
+            lowerLatBound,
+            upperLatBound,
+            lowerLngBound,
+            upperLngBound
         )
-        val locations = searchResponse.response.venues.map {
-            it.getPizza()
-        }
-        locations.forEach {
-            addPizza(it)
+        Timber.d("Pizzers' size ${pizzers.size}")
+        Timber.d("Pizzers are $pizzers")
+
+        if (pizzers.size < cacheLimit) {
+
+            Timber.d("Calling the network")
+
+            val searchResponse = fourSquareService.searchForPizzas(
+                latLng.concatString(),
+                categoryId
+            )
+            val locations = searchResponse.response.venues.map {
+                it.getPizza()
+            }
+            locations.forEach {
+                addPizza(it)
+            }
         }
     }
 

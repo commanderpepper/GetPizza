@@ -109,7 +109,7 @@ class RepositoryTest {
     }
 
     @Test
-    fun test_exclusivity_of_location_retriever() = runBlocking {
+    fun test_inclusively_of_location_retriever() = runBlocking {
         val lat = 75.0
         val lng = -75.00
         val distance = 0.001953125
@@ -149,6 +149,37 @@ class RepositoryTest {
         )
         println("$list")
         assertThat(2, CoreMatchers.equalTo(list.size))
+    }
+
+    @Test
+    fun test_exclusivity_of_location_retriever() = runBlocking {
+        val testPizzaLat = PizzaFav(
+            "8",
+            95.0,
+            0.0
+        )
+
+        val testPizzaLng = PizzaFav(
+            "9",
+            0.0,
+            95.0
+        )
+
+        val testPizzaBoth = PizzaFav(
+            "10",
+            95.0,
+            95.0
+        )
+
+        pizzaRepository.addPizza(testPizzaLat)
+        pizzaRepository.addPizza(testPizzaLng)
+        pizzaRepository.addPizza(testPizzaBoth)
+
+        val list = pizzaRepository.getPizzaLocationUsingLatAndLng(94.0, 96.0, 94.0, 96.0)
+
+        println("$list")
+        assertThat(1, CoreMatchers.equalTo(list.size))
+
     }
 
     @Test
