@@ -49,7 +49,7 @@ private const val defaultTransparency = .85F
 /**
  * Max marker count
  */
-private const val maxMarkerCount = 200
+private const val maxMarkerCount = 250
 
 class MapActivity : AppCompatActivity(),
     OnMapReadyCallback,
@@ -195,10 +195,7 @@ class MapActivity : AppCompatActivity(),
      * Called inside onCameraIdle
      */
     private fun updateViewModel(newLocation: LatLng) {
-//        mainMapViewModel.updateLocationLiveData(newLocation)
-//        mainMapViewModel.setLocationFlow(newLocation)
         mainMapViewModel.updateLocationLiveData(newLocation)
-//        removeMarkers()
     }
 
     /**
@@ -245,12 +242,17 @@ class MapActivity : AppCompatActivity(),
      * Removes markes from the @markerMap
      */
     private fun removeMarkers() {
+
+        Timber.d("Maker map size ${markerMap.size}")
+
         //Remove some items not inside the map of venues from the map
         val iter = markerMap.iterator()
 
+        Timber.d("Maker map size ${markerMap.size}")
+
         if (markerMap.size >= maxMarkerCount) {
             var i = 0
-            while (iter.hasNext() && i <= 50) {
+            while (iter.hasNext() && i <= maxMarkerCount) {
                 val entry = iter.next()
                 if (pizzaMap.containsKey(entry.key)) {
                     Timber.d("Match found")

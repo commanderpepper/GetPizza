@@ -97,7 +97,7 @@ class PizzaRepository private constructor(context: Context) {
                 it.getPizza()
             }
             locations.forEach {
-                addPizza(it)
+                addPizzaIfNoneExists(it)
             }
         }
     }
@@ -116,6 +116,7 @@ class PizzaRepository private constructor(context: Context) {
         return pizzaDatabase
             .pizzaDao()
             .getFlowOfFavorites()
+//            .take(200)
 //            .distinctUntilChanged()
     }
 
