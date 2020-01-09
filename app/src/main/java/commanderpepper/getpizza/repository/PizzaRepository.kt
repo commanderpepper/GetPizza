@@ -116,8 +116,6 @@ class PizzaRepository private constructor(context: Context) {
         return pizzaDatabase
             .pizzaDao()
             .getFlowOfFavorites()
-//            .take(200)
-//            .distinctUntilChanged()
     }
 
     @VisibleForTesting

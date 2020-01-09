@@ -85,11 +85,11 @@ class MapActivity : AppCompatActivity(),
         mapFragment.getMapAsync(this)
 
         setupLocationClient()
+        setUpViewModel()
 
         drawer = binding.MainActivityDrawerLayout
         navView = binding.mainNavView
         navView.setNavigationItemSelectedListener(this)
-
     }
 
     /**
@@ -116,13 +116,11 @@ class MapActivity : AppCompatActivity(),
         map = googleMap
         map.setInfoWindowAdapter(PizzaInfoWindowAdapter(this))
         map.setOnInfoWindowClickListener {
-            //            Log.d("HI", "Nothing")
             handleInfoWindowClick(it)
         }
         map.setOnInfoWindowLongClickListener {
             handleLongInfoWindowClick(it)
         }
-        Log.d("MapReady", "Map is ready")
 
         getCurrentLocation()
         setupMapListeners()
@@ -210,8 +208,6 @@ class MapActivity : AppCompatActivity(),
         val mapActivity = this
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
-
-//        mainMapViewModel.setLocationFlow(userInitialLatLng)
 
         //Populate the data from this flow into the map
         mainMapViewModel.flowOfPizzaFav.onEach { pizzaList ->
@@ -324,7 +320,8 @@ class MapActivity : AppCompatActivity(),
     }
 
     /**
-     * Get the user's current location and update the location within the view model
+     * Get the user's current location when pressing top right button
+     * and update the location within the view model.
      */
     private fun getUserLocation() {
         if (ActivityCompat.checkSelfPermission(
@@ -341,7 +338,7 @@ class MapActivity : AppCompatActivity(),
                     val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom)
                     map.moveCamera(cameraUpdate)
                     // Update the view model
-                    updateViewModel(latLng)
+//                    updateViewModel(latLng)
 
                 } else {
                     Log.e(TAG, "No location found")
@@ -358,7 +355,7 @@ class MapActivity : AppCompatActivity(),
     }
 
     /**
-     * Gets current location, should only be used when the app is starting up, inside onCreate()
+     * Gets user initial location, should only be used when the app is starting up, inside onMapReady
      */
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
@@ -374,15 +371,19 @@ class MapActivity : AppCompatActivity(),
 
             fusedLocationClient.lastLocation.addOnCompleteListener {
                 val location = it.result
-                if (location != null) {
+
+                /**
+                 * If the returned location is not null and the location in the view model is 0,
+                 * then move the camera to the user's location
+                 */
+                if (location != null && mainMapViewModel.location == LatLng(0.0, 0.0)) {
                     val latLng = LatLng(location.latitude, location.longitude)
                     userInitialLatLng = latLng
-                    // Set up the view model for the first time
-                    setUpViewModel()
-                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom)
+                    val cameraUpdate =
+                        CameraUpdateFactory.newLatLngZoom(latLng, zoom)
                     map.moveCamera(cameraUpdate)
                 } else {
-                    Log.e(TAG, "No location found")
+                    Timber.e("No location found")
                 }
             }
         }
