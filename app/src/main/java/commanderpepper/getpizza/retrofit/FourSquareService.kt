@@ -28,7 +28,7 @@ interface FourSquareService {
         @Query("client_secret")
         client_secret: String = Constants.CLIENT_SECRET,
         @Query("limit")
-        limit: Int = 50,
+        limit: Int = 100,
         @Query("v")
         v: String = SimpleDateFormat("yyyyMMdd").format(Date())
     ): SearchResponse

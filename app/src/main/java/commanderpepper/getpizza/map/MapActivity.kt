@@ -32,6 +32,7 @@ import commanderpepper.getpizza.ui.PizzaInfoWindowAdapter
 import commanderpepper.getpizza.viewmodel.MainMapViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
@@ -160,12 +161,14 @@ class MapActivity : AppCompatActivity(),
             mainMapViewModel.addPizza(pizzaFav.apply {
                 favorite = 1
             })
+            addFavoriteMarkerFromPizzaFav(pizzaFav)
         } else {
             markerMap[pizzaFav.id]!!.remove()
             markerMap.remove(pizzaFav.id)
             mainMapViewModel.addPizza(pizzaFav.apply {
                 favorite = 0
             })
+            addDefaultMarkerFromPizzaFav(pizzaFav)
         }
     }
 
@@ -209,20 +212,27 @@ class MapActivity : AppCompatActivity(),
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
 
-        //Populate the data from this flow into the map
-        mainMapViewModel.flowOfPizzaFav.onEach { pizzaList ->
-            val map = pizzaList.map { it.id to it }.toMap().toMutableMap()
-            pizzaMap.putAll(map)
-            makeMarkersFromPizzaFav()
-        }.launchIn(lifecycleScope)
+        mainMapViewModel.locationChannel.asFlow()
+            .onEach { userLocation ->
+                Timber.d("UserLocation B: $userLocation")
 
-        //Whenever a new location is given, update the location.
-        mainMapViewModel.locationFlow.onEach {
-            mainMapViewModel.updateLocationLiveData(it)
-        }.launchIn(lifecycleScope)
+                val map = mainMapViewModel.getPizzaUsingLocation(userLocation)
+                    .map { it.id to it }.toMap().toMutableMap()
+                pizzaMap.clear()
+                pizzaMap.putAll(map)
+                makeMarkersFromPizzaFav()
+
+            }.launchIn(lifecycleScope)
     }
 
     private fun makeMarkersFromPizzaFav() {
+
+        markerMap.forEach {
+            it.value!!.remove()
+        }
+
+        markerMap.clear()
+
         pizzaMap.forEach { pizzafav ->
             if (markerMap[pizzafav.key] == null) {
                 if (pizzafav.value.favorite == 0) {
@@ -376,12 +386,20 @@ class MapActivity : AppCompatActivity(),
                  * If the returned location is not null and the location in the view model is 0,
                  * then move the camera to the user's location
                  */
-                if (location != null && mainMapViewModel.location == LatLng(0.0, 0.0)) {
+
+                Timber.d("Location channel value : ${mainMapViewModel.locationChannel.value}")
+
+                if (mainMapViewModel.locationChannel.value == LatLng(
+                        0.0,
+                        0.0
+                    ) && location != null
+                ) {
                     val latLng = LatLng(location.latitude, location.longitude)
                     userInitialLatLng = latLng
                     val cameraUpdate =
                         CameraUpdateFactory.newLatLngZoom(latLng, zoom)
                     map.moveCamera(cameraUpdate)
+                    updateViewModel(latLng)
                 } else {
                     Timber.e("No location found")
                 }

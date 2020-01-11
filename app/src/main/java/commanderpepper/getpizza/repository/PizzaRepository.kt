@@ -20,14 +20,14 @@ import timber.log.Timber
 private const val categoryId = "4bf58dd8d48988d1ca941735"
 
 /**
- * About a mile in degrees if I did my math right
+ * About two miles in degrees if I did my math right
  */
-private const val distanceThreshold = 0.018181818
+private const val distanceThreshold = 0.036363636
 
 /**
  * Cache limit, if the number of pizza shops is less than the cache limit within a certain area then ask the network for more.
  */
-private const val cacheLimit = 25
+private const val cacheLimit = 50
 
 /**
  * This will get data from the UI to use, the UI should not be aware of the source of the data
@@ -118,11 +118,27 @@ class PizzaRepository private constructor(context: Context) {
             .getFlowOfFavorites()
     }
 
+    suspend fun getLocalPizzas(latLng: LatLng): List<PizzaFav> {
+
+        Timber.d("Lat and Lng are $latLng")
+
+        val lowerLatBound = latLng.latitude - distanceThreshold
+        val upperLatBound = latLng.latitude + distanceThreshold
+        val lowerLngBound = latLng.longitude - distanceThreshold
+        val upperLngBound = latLng.longitude + distanceThreshold
+
+        return pizzaDatabase.pizzaDao().getPizzasNearLocationUsingLatAndLng(
+            lowerLatBound,
+            upperLatBound,
+            lowerLngBound,
+            upperLngBound
+        )
+    }
+
     @VisibleForTesting
     suspend fun getPizzaLocation(lowerBound: Double, upperBound: Double) =
         pizzaDatabase.pizzaDao().getPizzasNearLocation(lowerBound, upperBound)
 
-    @VisibleForTesting
     suspend fun getPizzaLocationUsingLatAndLng(
         lowerLatBound: Double,
         upperLatBound: Double,

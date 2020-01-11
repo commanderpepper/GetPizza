@@ -42,6 +42,14 @@ interface PizzaDAO {
         upperLngBound: Double
     ): List<PizzaFav>
 
+    @Query("SELECT * FROM pizzafav WHERE lat BETWEEN :lowerLatBound AND :upperLatBound AND lng BETWEEN :lowerLngBound AND :upperLngBound")
+    fun getFlowOfLocalPizzaShops(
+        lowerLatBound: Double,
+        upperLatBound: Double,
+        lowerLngBound: Double,
+        upperLngBound: Double
+    ): Flow<List<PizzaFav>>
+
     @VisibleForTesting
     @Query("DELETE FROM pizzafav")
     fun clearTableForTesting()
