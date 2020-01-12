@@ -29,9 +29,9 @@ class FavoritesActivity : AppCompatActivity() {
         val viewManager = LinearLayoutManager(this)
 
         //Set up the adapter using a list from the data base and instantiate the recycler view
-        val favAdapter = FavoriteAdapter(favViewModel.favorites.toList())
+        val favAdapter = FavoriteAdapter(favViewModel.favorites.toList(), this)
         recyclerView = binding.root.fav_list.apply {
-            layoutManager = viewManager
+            layoutManager = viewManager as RecyclerView.LayoutManager?
             adapter = favAdapter
         }
     }

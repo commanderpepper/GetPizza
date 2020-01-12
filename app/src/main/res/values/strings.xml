@@ -7,4 +7,5 @@
     <string name="add_pizza_shops">Add some favorite shops, will ya!</string>
     <string name="the_secret_sauce">The secret sauce!</string>
     <string name="favorite_star_image_text">Favorite star image</string>
+    <string name="go_to_location">Go to Pizza Fav location on the map</string>
 </resources>

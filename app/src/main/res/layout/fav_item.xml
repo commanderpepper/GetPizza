@@ -8,22 +8,39 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
-        <TextView
-                android:id="@+id/favName"
-                android:layout_width="match_parent"
+        <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/placeHolderName"
-                android:textColor="@android:color/black"/>
+                android:layout_margin="8dp"
+                android:orientation="vertical"
+                android:layout_weight="7">
 
-        <TextView
-                android:id="@+id/favAddress"
-                android:layout_width="match_parent"
+            <TextView
+                    android:id="@+id/favName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/placeHolderName"
+                    android:textColor="@android:color/black" />
+
+            <TextView
+                    android:id="@+id/favAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/placeHolderAddress"
+                    android:textColor="@android:color/black" />
+        </LinearLayout>
+
+        <ImageButton
+                android:id="@+id/goToLocationButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/placeHolderAddress"
-                android:textColor="@android:color/black"/>
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@string/go_to_location"
+                android:src="@android:drawable/ic_menu_mylocation"
+                android:layout_weight="1"/>
+
     </LinearLayout>
 
 </layout>

@@ -1,7 +1,7 @@
 package commanderpepper.getpizza.map
 
 import android.Manifest
-import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.SearchManager
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -43,14 +43,19 @@ import timber.log.Timber
 private const val zoom = 15.0f
 
 /**
+ * Favorite zoom when going to a favorite pizza shop
+ */
+private const val favoriteZoom = 17.5f
+
+/**
  * Default transparency
  */
 private const val defaultTransparency = .85F
 
 /**
- * Max marker count
+ * Favorite request code when going from the favorites activity back the map activity
  */
-private const val maxMarkerCount = 250
+private const val REQUEST_FAV = 0
 
 class MapActivity : AppCompatActivity(),
     OnMapReadyCallback,
@@ -66,7 +71,6 @@ class MapActivity : AppCompatActivity(),
     private lateinit var navView: NavigationView
 
     private var markerMap = mutableMapOf<String, Marker?>()
-
     private var pizzaMap = mutableMapOf<String, PizzaFav>()
 
     /**
@@ -102,7 +106,7 @@ class MapActivity : AppCompatActivity(),
             R.id.favorites -> {
                 Log.d("DrawNav", "Clicked on fav")
                 val intent = Intent(this, FavoritesActivity::class.java)
-                startActivity(intent)
+                startActivityForResult(intent, REQUEST_FAV)
             }
         }
         return true
@@ -137,7 +141,6 @@ class MapActivity : AppCompatActivity(),
         val text = pair.second.name + " " + pair.second.address
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_WEB_SEARCH
-
             putExtra(SearchManager.QUERY, text)
         }
         startActivity(sendIntent)
@@ -201,9 +204,7 @@ class MapActivity : AppCompatActivity(),
 
     /**
      * Makes the view model
-     * Should be called when the user gets their location for the first time
      */
-    @SuppressLint("MissingPermission")
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     private fun setUpViewModel() {
@@ -212,6 +213,10 @@ class MapActivity : AppCompatActivity(),
 
         mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
 
+        /**
+         * Called every time the location in the viewmodel is updated.
+         * When the view model updates the location is not inside the activity, I guess this is a decent separation of concerns
+         */
         mainMapViewModel.locationChannel.asFlow()
             .onEach { userLocation ->
                 Timber.d("UserLocation B: $userLocation")
@@ -225,6 +230,10 @@ class MapActivity : AppCompatActivity(),
             }.launchIn(lifecycleScope)
     }
 
+    /**
+     * Removes all the existing markers, clears the marker map
+     * Then adds the pizza favs as makers and makes those markers on the map
+     */
     private fun makeMarkersFromPizzaFav() {
 
         markerMap.forEach {
@@ -243,33 +252,6 @@ class MapActivity : AppCompatActivity(),
             }
         }
     }
-
-    /**
-     * Removes markes from the @markerMap
-     */
-    private fun removeMarkers() {
-
-        Timber.d("Maker map size ${markerMap.size}")
-
-        //Remove some items not inside the map of venues from the map
-        val iter = markerMap.iterator()
-
-        Timber.d("Maker map size ${markerMap.size}")
-
-        if (markerMap.size >= maxMarkerCount) {
-            var i = 0
-            while (iter.hasNext() && i <= maxMarkerCount) {
-                val entry = iter.next()
-                if (pizzaMap.containsKey(entry.key)) {
-                    Timber.d("Match found")
-                    entry.value?.remove()
-                    iter.remove()
-                }
-                i++
-            }
-        }
-    }
-
 
     /**
      * Add a default marker to the map
@@ -315,7 +297,7 @@ class MapActivity : AppCompatActivity(),
     }
 
     /**
-     * Calls stuff when the map moves
+     * Calls stuff when the user interacts with the map features
      */
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
@@ -386,7 +368,6 @@ class MapActivity : AppCompatActivity(),
                  * If the returned location is not null and the location in the view model is 0,
                  * then move the camera to the user's location
                  */
-
                 Timber.d("Location channel value : ${mainMapViewModel.locationChannel.value}")
 
                 if (mainMapViewModel.locationChannel.value == LatLng(
@@ -430,6 +411,30 @@ class MapActivity : AppCompatActivity(),
         Log.d("Permi", grantResults.toString())
         if (grantResults.first() == PackageManager.PERMISSION_GRANTED) {
             getCurrentLocation()
+        }
+    }
+
+    /**
+     * If the user clicks on the location button in their favorite pizza locations,
+     * go to the spot on the map
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        // Check which request we're responding to
+        if (requestCode == REQUEST_FAV) {
+            // Make sure the request was successful
+            if (resultCode == Activity.RESULT_OK) {
+                // The user selected a favorite location.
+                data?.let {
+                    val lat = data.extras?.get("lat") as Double
+                    val lng = data.extras?.get("lng") as Double
+                    Timber.d("User location is $lat and $lng")
+                    val latLng = LatLng(lat, lng)
+                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, favoriteZoom)
+                    map.moveCamera(cameraUpdate)
+                } ?: return
+
+            }
         }
     }
 
