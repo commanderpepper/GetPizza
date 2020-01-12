@@ -12,7 +12,7 @@ import org.junit.Before
 import org.junit.Test
 
 class RoomTest {
-    lateinit var database: PizzaDatabase
+    private lateinit var database: PizzaDatabase
 
     @Before
     fun init() {

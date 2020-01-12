@@ -1,8 +1,11 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Get Pizza</string>
-    <string name="location_permission_text">Location permission is needed</string>
+    <string name="location_permission_text" tools:keep="@string/location_permission_text">Location permission is needed</string>
     <string name="placeHolderName">Panucci\'s Pizza</string>
     <string name="placeHolderAddress">The Future</string>
     <string name="favorite_msg_drawer">Your Favorites!</string>
     <string name="add_pizza_shops">Add some favorite shops, will ya!</string>
+    <string name="the_secret_sauce">The secret sauce!</string>
+    <string name="favorite_star_image_text">Favorite star image</string>
+    <string name="go_to_location">Go to Pizza Fav location on the map</string>
 </resources>

@@ -13,8 +13,9 @@ import org.junit.Before
 import org.junit.Test
 
 class FourSquareServiceTest {
-    var client: FourSquareService? = null
+    private var client: FourSquareService? = null
 
+    // I should think how this clien is created
     @Before
     fun init() {
         client = FourSquareService.create()

@@ -3,161 +3,63 @@ package commanderpepper.getpizza.viewmodel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
-import commanderpepper.getpizza.foursquaremodels.Venue
-import commanderpepper.getpizza.retrofit.FourSquareService
-import commanderpepper.getpizza.room.PizzaDatabase
+import commanderpepper.getpizza.repository.PizzaRepository
 import commanderpepper.getpizza.room.entity.PizzaFav
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.abs
 
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val fourSquareService: FourSquareService = FourSquareService.create()
-    private val pizzaDatabase = PizzaDatabase.getInstance(application)
+    private val repository = PizzaRepository.getInstance()
 
-    val latLngLiveData = MutableLiveData<LatLng>()
-
-    @ExperimentalCoroutinesApi
-    val locations by lazy {
-        return@lazy latLngLiveData.value?.let { setLocations(it) }
-    }
-
-    fun setLocationLiveData(latlng: LatLng) {
-        latLngLiveData.value = latlng
-        setLocations(latlng)
-        updateLocations()
-        Log.d("Venues", latlng.toString())
-        Log.d("Venues", latLngLiveData.value.toString())
+    val locationChannel = ConflatedBroadcastChannel<LatLng>().also {
+        it.offer(LatLng(0.0, 0.0))
     }
 
     fun updateLocationLiveData(latlng: LatLng) {
-        if (compareLatLng(latlng, latLngLiveData.value ?: LatLng(0.0, 0.0))) {
-            Log.d("UVM", "The camera moved")
-            latLngLiveData.value = latlng
-            updateLocations()
-        }
-    }
-
-    /**
-     * Used to set up the locations inside this view model. Should be called only once.
-     */
-    @ExperimentalCoroutinesApi
-    fun setLocations(latLng: LatLng): MutableLiveData<Map<String, Venue>> {
-        val set = mutableSetOf<Venue>()
-//        val mapOfVenues = mutableMapOf<String, Venue>()
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
-                val flow = fourSquareService.searchForPizzas(
-                    convertLatLngtoString(latLng)
-                    , "4bf58dd8d48988d1ca941735"
+            Timber.d("The camera moved")
+            Timber.d("Parameter is $latlng")
+            Timber.d("Channel is ${locationChannel.asFlow().first()}")
+
+            if (locationChannel.asFlow().first() == LatLng(0.0, 0.0) || compareLatLng(
+                    latlng,
+                    locationChannel.asFlow().first()
                 )
-                    .response.venues.asFlow()
-                    .map {
-                        Log.d("Gotown", it.toString())
-                        it
-                    }
-                    .flowOn(Dispatchers.IO)
-                    .catch {
-                        Log.d("Motown", "Something went wrong")
-                    }
-                flow.toCollection(set)
+            ) {
+                repository.getPizzas(latlng)
+                locationChannel.offer(latlng)
             }
         }
-//        return MutableLiveData(set)
-        return MutableLiveData(set.map { it.id to it }.toMap())
     }
 
-    /**
-     * Call to update locations. Used
-     */
-    @ExperimentalCoroutinesApi
-    private fun updateLocations() {
+    fun addPizza(pizzaFav: PizzaFav) {
         viewModelScope.launch {
-            val set = mutableSetOf<Venue>()
-            withContext(Dispatchers.Default) {
-                val flow = fourSquareService.searchForPizzas(
-                    convertLatLngtoString(latLngLiveData.value!!),
-                    "4bf58dd8d48988d1ca941735"
-                )
-                    .response.venues.asFlow()
-                    .map {
-                        Log.d("Gotown", it.toString())
-                        it
-                    }
-                    .flowOn(Dispatchers.IO)
-                    .catch {
-                        Log.d("Motown", "Something went wrong")
-                    }
-                flow.toCollection(set)
-                locations!!.postValue(set.map { it.id to it }.toMap())
-            }
-        }
-        Log.d("Venues", locations!!.value!!.toString())
-        Log.d("VenuesSize", locations!!.value!!.size.toString())
-    }
-
-    private fun convertLatLngtoString(latLng: LatLng): String {
-        return "${latLng.latitude},${latLng.longitude}"
-    }
-
-    fun addPizza(venue: Venue) {
-        runBlocking {
-            withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
-                pizzaDatabase.pizzaDao().addPizzaFav(
-                    PizzaFav(
-                        venue.id,
-                        venue.location.lat.toDouble(),
-                        venue.location.lng.toDouble(),
-                        venue.location.address,
-                        venue.name
-                    )
-                )
-            }
+            repository.addPizza(pizzaFav)
         }
     }
 
-    fun deletePizza(venue: Venue) {
-        runBlocking {
-            withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
-                pizzaDatabase.pizzaDao().deletePizzaFav(
-                    PizzaFav(
-                        venue.id,
-                        venue.location.lat.toDouble(),
-                        venue.location.lng.toDouble(),
-                        venue.location.address,
-                        venue.name
-                    )
-                )
-            }
-        }
-    }
-
-    fun checkForPizza(id: String): Boolean {
-        var boolean = false
-        runBlocking {
-            val result = withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
-                pizzaDatabase.pizzaDao().checkForPizzaFav(id)
-            }
-            boolean = result == 1
-        }
-        Log.d("MainCheck", boolean.toString())
-        return boolean
+    suspend fun getPizzaUsingLocation(latLng: LatLng): List<PizzaFav> {
+        return repository.getLocalPizzas(latLng)
     }
 
     /**
+     * Used to check if the distance between two LatLng is greater than distance parameter
      * Distance is about a quarter of a mile
      */
-    private fun compareLatLng(
+    fun compareLatLng(
         latlng1: LatLng,
         latlng2: LatLng,
         distance: Double = 0.001953125
     ): Boolean {
         val lat1 = latlng1.latitude
-        val lng1 = latlng2.longitude
+        val lng1 = latlng1.longitude
         val lat2 = latlng2.latitude
         val lng2 = latlng2.longitude
 

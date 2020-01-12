@@ -8,7 +8,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import commanderpepper.getpizza.room.entity.PizzaFav
 
-@Database(entities = [PizzaFav::class], version = 2)
+@Database(entities = [PizzaFav::class], version = 3)
 abstract class PizzaDatabase : RoomDatabase() {
     abstract fun pizzaDao(): PizzaDAO
 
@@ -16,12 +16,24 @@ abstract class PizzaDatabase : RoomDatabase() {
     companion object {
 
         //Migration object made to add name to the PizzaFav table
-        val MIGRATION_1_2 = object : Migration(1, 2) {
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE pizzafav ADD COLUMN name TEXT DEFAULT '' NOT NULL")
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2,3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE pizzafav ADD COLUMN name favorite DEFAULT 0 NOT NULL")
+            }
+        }
+
+//        private val MIGRATION_3_4 = object : Migration(3,4) {
+//            override fun migrate(database: SupportSQLiteDatabase) {
+//                database.execSQL("ALTER TABLE pizzafav COLUMN '' FOR address")
+//            }
+//        }
+//ALTER TABLE Employee ADD DEFAULT 'SANDNES' FOR CityBorn
         @Volatile
         private var instance: PizzaDatabase? = null
 
@@ -36,6 +48,7 @@ abstract class PizzaDatabase : RoomDatabase() {
                         "pizza-db"
                     )
                         .addMigrations(MIGRATION_1_2)
+                        .addMigrations(MIGRATION_2_3)
                         .build()
                 }
             }
