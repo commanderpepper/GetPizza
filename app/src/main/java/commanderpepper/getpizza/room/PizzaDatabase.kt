@@ -24,7 +24,7 @@ abstract class PizzaDatabase : RoomDatabase() {
 
         private val MIGRATION_2_3 = object : Migration(2,3) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE pizzafav ADD COLUMN name favorite DEFAULT 0 NOT NULL")
+                database.execSQL("ALTER TABLE pizzafav ADD COLUMN favorite INTEGER DEFAULT 0 NOT NULL")
             }
         }
 
