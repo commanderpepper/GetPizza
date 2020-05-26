@@ -1,4 +1,4 @@
-package commanderpepper.getpizza.map
+package commanderpepper.getpizza.ui.favorites
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -8,8 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityFavoritesBinding
-import commanderpepper.getpizza.ui.recyclerview.FavoriteAdapter
-import commanderpepper.getpizza.viewmodel.FavoriteViewModel
+import commanderpepper.getpizza.ui.favorites.recyclerview.FavoriteAdapter
 import kotlinx.android.synthetic.main.activity_favorites.view.*
 
 class FavoritesActivity : AppCompatActivity() {

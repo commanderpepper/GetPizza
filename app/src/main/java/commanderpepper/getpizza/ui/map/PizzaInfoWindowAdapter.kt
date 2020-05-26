@@ -1,8 +1,7 @@
-package commanderpepper.getpizza.ui
+package commanderpepper.getpizza.ui.map
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -10,7 +9,8 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Marker
 import commanderpepper.getpizza.R
-import commanderpepper.getpizza.foursquaremodels.Venue
+import commanderpepper.getpizza.model.foursquare.Venue
+import timber.log.Timber
 
 class PizzaInfoWindowAdapter(private val context: Activity) : GoogleMap.InfoWindowAdapter {
 
@@ -25,7 +25,7 @@ class PizzaInfoWindowAdapter(private val context: Activity) : GoogleMap.InfoWind
 
         val pair: Pair<Boolean, Venue> = marker?.tag as Pair<Boolean, Venue>
 
-        Log.d("IsFav", pair.first.toString())
+        Timber.d(pair.first.toString())
 
         if (pair.first) {
             contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(

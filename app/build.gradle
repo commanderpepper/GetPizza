@@ -12,8 +12,8 @@ android {
         applicationId "commanderpepper.getpizza"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 5
-        versionName "2.03"
+        versionCode 6
+        versionName "2.04"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

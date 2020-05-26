@@ -1,6 +1,6 @@
 package commanderpepper.getpizza.retrofit
 
-import commanderpepper.getpizza.foursquaremodels.SearchResponse
+import commanderpepper.getpizza.model.foursquare.SearchResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -62,12 +62,13 @@ interface FourSquareService {
             val client = OkHttpClient.Builder().apply {
                 this.addInterceptor(interceptor)
             }.build()
+
             val retrofit = Retrofit.Builder()
                 .addConverterFactory(MoshiConverterFactory.create())
-//                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(FourSquareConstants.FOURSQUARE_BASEURL)
                 .client(client)
                 .build()
+
             return retrofit.create(FourSquareService::class.java)
         }
 

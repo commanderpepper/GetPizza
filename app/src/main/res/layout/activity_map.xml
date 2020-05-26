@@ -14,14 +14,14 @@
                 android:id="@+id/MapConstraintLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                tools:context=".map.MapActivity">
+                tools:context=".ui.map.MapActivity">
 
             <fragment
                     android:name="com.google.android.gms.maps.SupportMapFragment"
                     android:id="@+id/map_fragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    tools:context=".map.MapActivity"/>
+                    tools:context=".ui.map.MapActivity"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

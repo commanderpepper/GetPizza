@@ -1,4 +1,4 @@
-package commanderpepper.getpizza.viewmodel
+package commanderpepper.getpizza.ui.map
 
 import android.app.Application
 import android.util.Log

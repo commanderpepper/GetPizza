@@ -1,4 +1,4 @@
-package commanderpepper.getpizza.map
+package commanderpepper.getpizza.ui.map
 
 import android.Manifest
 import android.app.Activity
@@ -27,9 +27,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
+import commanderpepper.getpizza.ui.favorites.FavoritesActivity
 import commanderpepper.getpizza.room.entity.PizzaFav
-import commanderpepper.getpizza.ui.PizzaInfoWindowAdapter
-import commanderpepper.getpizza.viewmodel.MainMapViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.asFlow
@@ -101,12 +100,15 @@ class MapActivity : AppCompatActivity(),
      * Handles user events in the drawer layout
      */
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        Log.d("DrawNav", item.toString())
+        Timber.d(item.toString())
         when (item.itemId) {
             R.id.favorites -> {
-                Log.d("DrawNav", "Clicked on fav")
+                Timber.d("Clicked on fav")
                 val intent = Intent(this, FavoritesActivity::class.java)
-                startActivityForResult(intent, REQUEST_FAV)
+                startActivityForResult(
+                    intent,
+                    REQUEST_FAV
+                )
             }
         }
         return true
@@ -119,7 +121,11 @@ class MapActivity : AppCompatActivity(),
     @InternalCoroutinesApi
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-        map.setInfoWindowAdapter(PizzaInfoWindowAdapter(this))
+        map.setInfoWindowAdapter(
+            PizzaInfoWindowAdapter(
+                this
+            )
+        )
         map.setOnInfoWindowClickListener {
             handleInfoWindowClick(it)
         }
@@ -155,7 +161,7 @@ class MapActivity : AppCompatActivity(),
         val favoriteStatus = pair.first
         val pizzaFav = pair.second
 
-        Log.d("InfoClick", favoriteStatus.toString())
+        Timber.d(favoriteStatus.toString())
 
         // Check if this is a favorite or not. If this is not a favorite, make it one.
         if (!favoriteStatus) {
@@ -327,13 +333,15 @@ class MapActivity : AppCompatActivity(),
                 val location = it.result
                 if (location != null) {
                     val latLng = LatLng(location.latitude, location.longitude)
-                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom)
+                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,
+                        zoom
+                    )
                     map.moveCamera(cameraUpdate)
                     // Update the view model
 //                    updateViewModel(latLng)
 
                 } else {
-                    Log.e(TAG, "No location found")
+                    Timber.e("No location found")
                 }
             }
         }
@@ -378,7 +386,9 @@ class MapActivity : AppCompatActivity(),
                     val latLng = LatLng(location.latitude, location.longitude)
                     userInitialLatLng = latLng
                     val cameraUpdate =
-                        CameraUpdateFactory.newLatLngZoom(latLng, zoom)
+                        CameraUpdateFactory.newLatLngZoom(latLng,
+                            zoom
+                        )
                     map.moveCamera(cameraUpdate)
                     updateViewModel(latLng)
                 } else {
@@ -408,7 +418,7 @@ class MapActivity : AppCompatActivity(),
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        Log.d("Permi", grantResults.toString())
+        Timber.d(grantResults.toString())
         if (grantResults.first() == PackageManager.PERMISSION_GRANTED) {
             getCurrentLocation()
         }
@@ -430,7 +440,9 @@ class MapActivity : AppCompatActivity(),
                     val lng = data.extras?.get("lng") as Double
                     Timber.d("User location is $lat and $lng")
                     val latLng = LatLng(lat, lng)
-                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, favoriteZoom)
+                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,
+                        favoriteZoom
+                    )
                     map.moveCamera(cameraUpdate)
                 } ?: return
 

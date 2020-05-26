@@ -1,4 +1,4 @@
-package commanderpepper.getpizza.ui.recyclerview
+package commanderpepper.getpizza.ui.favorites.recyclerview
 
 import android.app.Activity
 import android.view.LayoutInflater

@@ -1,4 +1,4 @@
-package commanderpepper.getpizza.foursquaremodels
+package commanderpepper.getpizza.model.foursquare
 
 import com.squareup.moshi.Json
 

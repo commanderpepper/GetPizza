@@ -1,4 +1,4 @@
-package commanderpepper.getpizza.viewmodel
+package commanderpepper.getpizza.ui.favorites
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

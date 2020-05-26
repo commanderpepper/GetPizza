@@ -1,6 +1,6 @@
 package commanderpepper.getpizza
 
-import commanderpepper.getpizza.foursquaremodels.SearchResponse
+import commanderpepper.getpizza.model.foursquare.SearchResponse
 import commanderpepper.getpizza.retrofit.FourSquareService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.asFlow

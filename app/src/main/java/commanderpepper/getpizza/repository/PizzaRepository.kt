@@ -3,7 +3,7 @@ package commanderpepper.getpizza.repository
 import android.content.Context
 import androidx.annotation.VisibleForTesting
 import com.google.android.gms.maps.model.LatLng
-import commanderpepper.getpizza.foursquaremodels.Venue
+import commanderpepper.getpizza.model.foursquare.Venue
 import commanderpepper.getpizza.retrofit.FourSquareService
 import commanderpepper.getpizza.room.PizzaDatabase
 import commanderpepper.getpizza.room.entity.PizzaFav
