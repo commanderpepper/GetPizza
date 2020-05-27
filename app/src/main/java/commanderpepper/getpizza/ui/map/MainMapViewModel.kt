@@ -58,6 +58,7 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
         latlng2: LatLng,
         distance: Double = 0.001953125
     ): Boolean {
+
         val lat1 = latlng1.latitude
         val lng1 = latlng1.longitude
         val lat2 = latlng2.latitude
@@ -66,8 +67,8 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
         val latDif = abs(lat1 - lat2)
         val lngDif = abs(lng1 - lng2)
 
-        Log.d("Compare", latDif.toString())
-        Log.d("Compare", lngDif.toString())
+        Timber.d(latDif.toString())
+        Timber.d(lngDif.toString())
 
         return latDif >= distance || lngDif >= distance
     }

@@ -10,6 +10,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Marker
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.model.foursquare.Venue
+import commanderpepper.getpizza.room.entity.PizzaFav
 import timber.log.Timber
 
 class PizzaInfoWindowAdapter(private val context: Activity) : GoogleMap.InfoWindowAdapter {
@@ -23,25 +24,43 @@ class PizzaInfoWindowAdapter(private val context: Activity) : GoogleMap.InfoWind
         contents.findViewById<TextView>(R.id.title).text = marker?.title ?: ""
         contents.findViewById<TextView>(R.id.address).text = marker?.snippet ?: ""
 
-        val pair: Pair<Boolean, Venue> = marker?.tag as Pair<Boolean, Venue>
+        val pizzaFav = marker?.tag as PizzaFav
 
-        Timber.d(pair.first.toString())
-
-        if (pair.first) {
-            contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
-                ContextCompat.getDrawable(
-                    context,
-                    android.R.drawable.star_big_on
-                )
-            )
-        } else {
+        if (pizzaFav.favorite == 0) {
             contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
                 ContextCompat.getDrawable(
                     context,
                     android.R.drawable.star_big_off
                 )
             )
+        } else {
+            contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
+                ContextCompat.getDrawable(
+                    context,
+                    android.R.drawable.star_big_on
+                )
+            )
         }
+
+//        val pair: Pair<Boolean, Venue> = marker?.tag as Pair<Boolean, Venue>
+//
+//        Timber.d(pair.first.toString())
+//
+//        if (pair.first) {
+//            contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
+//                ContextCompat.getDrawable(
+//                    context,
+//                    android.R.drawable.star_big_on
+//                )
+//            )
+//        } else {
+//            contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
+//                ContextCompat.getDrawable(
+//                    context,
+//                    android.R.drawable.star_big_off
+//                )
+//            )
+//        }
 
 
         return contents

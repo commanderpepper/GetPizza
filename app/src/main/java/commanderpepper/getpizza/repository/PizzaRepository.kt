@@ -10,7 +10,9 @@ import commanderpepper.getpizza.room.entity.PizzaFav
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -45,6 +47,12 @@ class PizzaRepository private constructor(context: Context) {
 
     private val fourSquareService: FourSquareService = FourSquareService.create()
     private val pizzaDatabase = PizzaDatabase.getInstance(context)
+
+    private val pizzaShops = ConflatedBroadcastChannel<PizzaFav>()
+
+    fun getPizzaShopFlow(): Flow<PizzaFav> {
+        return pizzaShops.asFlow()
+    }
 
     /**
      * Add a pizza to the database

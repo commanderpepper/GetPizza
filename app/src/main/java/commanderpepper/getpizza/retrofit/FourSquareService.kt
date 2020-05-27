@@ -56,6 +56,7 @@ interface FourSquareService {
 
     companion object {
         fun create(): FourSquareService {
+
             val interceptor: HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
                 this.level = HttpLoggingInterceptor.Level.BODY
             }

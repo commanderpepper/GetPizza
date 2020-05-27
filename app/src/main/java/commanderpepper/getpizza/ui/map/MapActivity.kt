@@ -157,28 +157,25 @@ class MapActivity : AppCompatActivity(),
      * Also can remove favorites.
      */
     private fun handleInfoWindowClick(marker: Marker) {
-        val pair = marker.tag as Pair<Boolean, PizzaFav>
-        val favoriteStatus = pair.first
-        val pizzaFav = pair.second
+//        val pair = marker.tag as Pair<Boolean, PizzaFav>
+//        val favoriteStatus = pair.first
+        val pizzaFav = marker.tag as PizzaFav
 
-        Timber.d(favoriteStatus.toString())
+        markerMap[pizzaFav.id]!!.remove()
+        markerMap.remove(pizzaFav.id)
 
         // Check if this is a favorite or not. If this is not a favorite, make it one.
-        if (!favoriteStatus) {
-            markerMap[pizzaFav.id]!!.remove()
-            markerMap.remove(pizzaFav.id)
-            mainMapViewModel.addPizza(pizzaFav.apply {
-                favorite = 1
-            })
-            addFavoriteMarkerFromPizzaFav(pizzaFav)
-        } else {
-            markerMap[pizzaFav.id]!!.remove()
-            markerMap.remove(pizzaFav.id)
+        if (pizzaFav.favorite == 1) {
             mainMapViewModel.addPizza(pizzaFav.apply {
                 favorite = 0
             })
-            addDefaultMarkerFromPizzaFav(pizzaFav)
+        } else {
+            mainMapViewModel.addPizza(pizzaFav.apply {
+                favorite = 1
+            })
+
         }
+        addMarker(pizzaFav)
     }
 
     /**
@@ -240,23 +237,32 @@ class MapActivity : AppCompatActivity(),
      * Removes all the existing markers, clears the marker map
      * Then adds the pizza favs as makers and makes those markers on the map
      */
+    //TODO: Work on this, clearing the map marker is too much and leads to janky UI
     private fun makeMarkersFromPizzaFav() {
-
         markerMap.forEach {
             it.value!!.remove()
         }
-
         markerMap.clear()
-
         pizzaMap.forEach { pizzafav ->
             if (markerMap[pizzafav.key] == null) {
-                if (pizzafav.value.favorite == 0) {
-                    addDefaultMarkerFromPizzaFav(pizzaFav = pizzafav.value)
-                } else {
-                    addFavoriteMarkerFromPizzaFav(pizzaFav = pizzafav.value)
-                }
+                addMarker(pizzafav.value)
             }
         }
+    }
+
+    private fun addMarker(pizzaFav: PizzaFav) {
+        markerMap[pizzaFav.id] = map.addMarker(
+            MarkerOptions().position(
+                LatLng(
+                    pizzaFav.lat,
+                    pizzaFav.lng
+                )
+            )
+                .alpha(defaultTransparency)
+                .title(pizzaFav.name)
+                .snippet(pizzaFav.address)
+        )
+        markerMap[pizzaFav.id]!!.tag = pizzaFav
     }
 
     /**
@@ -333,7 +339,8 @@ class MapActivity : AppCompatActivity(),
                 val location = it.result
                 if (location != null) {
                     val latLng = LatLng(location.latitude, location.longitude)
-                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,
+                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(
+                        latLng,
                         zoom
                     )
                     map.moveCamera(cameraUpdate)
@@ -386,7 +393,8 @@ class MapActivity : AppCompatActivity(),
                     val latLng = LatLng(location.latitude, location.longitude)
                     userInitialLatLng = latLng
                     val cameraUpdate =
-                        CameraUpdateFactory.newLatLngZoom(latLng,
+                        CameraUpdateFactory.newLatLngZoom(
+                            latLng,
                             zoom
                         )
                     map.moveCamera(cameraUpdate)
@@ -440,7 +448,8 @@ class MapActivity : AppCompatActivity(),
                     val lng = data.extras?.get("lng") as Double
                     Timber.d("User location is $lat and $lng")
                     val latLng = LatLng(lat, lng)
-                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,
+                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(
+                        latLng,
                         favoriteZoom
                     )
                     map.moveCamera(cameraUpdate)
