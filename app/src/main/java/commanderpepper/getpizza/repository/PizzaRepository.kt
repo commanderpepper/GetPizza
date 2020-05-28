@@ -22,9 +22,14 @@ import timber.log.Timber
 private const val categoryId = "4bf58dd8d48988d1ca941735"
 
 /**
- * About two miles in degrees if I did my math right
+ * About two miles in degrees if I did my math right.
  */
-private const val distanceThreshold = 0.036363636
+private const val twoMileDistanceThreshold = 0.036363636
+
+/**
+ * About a quarter mile in degrees where one degree is around 55 miles.
+ */
+private const val quarterMileThreshold = 0.0045454545
 
 /**
  * Cache limit, if the number of pizza shops is less than the cache limit within a certain area then ask the network for more.
@@ -49,6 +54,8 @@ class PizzaRepository private constructor(context: Context) {
     private val pizzaDatabase = PizzaDatabase.getInstance(context)
 
     private val pizzaShops = ConflatedBroadcastChannel<PizzaFav>()
+
+    private val userLocations = mutableSetOf<LatLng>()
 
     fun getPizzaShopFlow(): Flow<PizzaFav> {
         return pizzaShops.asFlow()
@@ -79,10 +86,10 @@ class PizzaRepository private constructor(context: Context) {
 
         Timber.d("Lat and Lng are $latLng")
 
-        val lowerLatBound = latLng.latitude - distanceThreshold
-        val upperLatBound = latLng.latitude + distanceThreshold
-        val lowerLngBound = latLng.longitude - distanceThreshold
-        val upperLngBound = latLng.longitude + distanceThreshold
+        val lowerLatBound = latLng.latitude - twoMileDistanceThreshold
+        val upperLatBound = latLng.latitude + twoMileDistanceThreshold
+        val lowerLngBound = latLng.longitude - twoMileDistanceThreshold
+        val upperLngBound = latLng.longitude + twoMileDistanceThreshold
 
         val pizzers = pizzaDatabase.pizzaDao().getPizzasNearLocationUsingLatAndLng(
             lowerLatBound,
@@ -90,6 +97,7 @@ class PizzaRepository private constructor(context: Context) {
             lowerLngBound,
             upperLngBound
         )
+
         Timber.d("Pizzers' size ${pizzers.size}")
         Timber.d("Pizzers are $pizzers")
 
@@ -113,7 +121,7 @@ class PizzaRepository private constructor(context: Context) {
     /**
      * Take a LatLng object and return a string from Lat,Lng
      */
-    fun LatLng.concatString(): String {
+    private fun LatLng.concatString(): String {
         return "${this.latitude},${this.longitude}"
     }
 
@@ -130,10 +138,10 @@ class PizzaRepository private constructor(context: Context) {
 
         Timber.d("Lat and Lng are $latLng")
 
-        val lowerLatBound = latLng.latitude - distanceThreshold
-        val upperLatBound = latLng.latitude + distanceThreshold
-        val lowerLngBound = latLng.longitude - distanceThreshold
-        val upperLngBound = latLng.longitude + distanceThreshold
+        val lowerLatBound = latLng.latitude - twoMileDistanceThreshold
+        val upperLatBound = latLng.latitude + twoMileDistanceThreshold
+        val lowerLngBound = latLng.longitude - twoMileDistanceThreshold
+        val upperLngBound = latLng.longitude + twoMileDistanceThreshold
 
         return pizzaDatabase.pizzaDao().getPizzasNearLocationUsingLatAndLng(
             lowerLatBound,
@@ -169,7 +177,6 @@ class PizzaRepository private constructor(context: Context) {
      * Extension function to make a PizzaFav from a Venue object
      */
     private fun Venue.getPizza(): PizzaFav {
-//        Timber.d(this.toString())
         return PizzaFav(
             this.id,
             this.location.lat.toDouble(),
@@ -177,6 +184,11 @@ class PizzaRepository private constructor(context: Context) {
             if (this.location.address != null) this.location.address else "",
             this.name
         )
+    }
+
+    @VisibleForTesting
+    fun clearDB(){
+        pizzaDatabase.clearAllTables()
     }
 
     companion object {

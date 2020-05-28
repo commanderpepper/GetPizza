@@ -2,9 +2,10 @@ package commanderpepper.getpizza
 
 import commanderpepper.getpizza.repository.PizzaRepository
 import commanderpepper.getpizza.room.entity.PizzaFav
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import org.hamcrest.CoreMatchers
+import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -19,6 +20,11 @@ class RepositoryTest {
             androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
         PizzaRepository.initialize(context)
         pizzaRepository = PizzaRepository.getInstance()
+    }
+
+    @After
+    fun clearDB() {
+        pizzaRepository.clearDB()
     }
 
     @Test
@@ -208,6 +214,49 @@ class RepositoryTest {
         val list = pizzaRepository.getFavorites()
         println("$list")
         assertThat(1, CoreMatchers.equalTo(list.size))
+    }
 
+    @Test
+    fun test_flow_of_pizzafavs() = runBlocking {
+
+        val job = SupervisorJob()
+        val scope = CoroutineScope(job + Dispatchers.Main)
+
+        val flow = pizzaRepository.getPizzas()
+//        var size = pizzaRepository.getFavorites().size
+
+        val testPizzaLat = PizzaFav(
+            "8",
+            95.0,
+            0.0
+        )
+
+        val testPizzaLng = PizzaFav(
+            "9",
+            0.0,
+            95.0
+        )
+
+        val testPizzaBoth = PizzaFav(
+            "10",
+            95.0,
+            95.0
+        )
+
+        pizzaRepository.addPizza(testPizzaBoth)
+
+        flow.catch {
+            println("Test end")
+        }.onEach {
+            assertTrue(it.isNotEmpty())
+            if (it.size == 3) {
+                cancel()
+            }
+        }.launchIn(
+            scope
+        )
+
+        pizzaRepository.addPizza(testPizzaLat)
+        pizzaRepository.addPizza(testPizzaLng)
     }
 }
