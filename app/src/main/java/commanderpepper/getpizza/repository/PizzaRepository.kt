@@ -11,8 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -29,7 +28,7 @@ private const val twoMileDistanceThreshold = 0.036363636
 /**
  * About a quarter mile in degrees where one degree is around 55 miles.
  */
-private const val quarterMileThreshold = 0.0045454545
+private const val quarterMileDistanceThreshold = 0.0045454545
 
 /**
  * Cache limit, if the number of pizza shops is less than the cache limit within a certain area then ask the network for more.
@@ -55,10 +54,30 @@ class PizzaRepository private constructor(context: Context) {
 
     private val pizzaShops = ConflatedBroadcastChannel<PizzaFav>()
 
+    private val databasePizzaFav = pizzaDatabase.pizzaDao().getFlowOfFavorites().onEach {
+        it.forEach { pizzaFav -> pizzaShops.offer(pizzaFav) }
+    }.launchIn(scope)
+
     private val userLocations = mutableSetOf<LatLng>()
+
 
     fun getPizzaShopFlow(): Flow<PizzaFav> {
         return pizzaShops.asFlow()
+    }
+
+    suspend fun requestForMorePizzaFavs(latLng: LatLng) {
+        val searchResponse = fourSquareService.searchForPizzas(
+            latLng.concatString(),
+            categoryId
+        )
+
+        val locations = searchResponse.response.venues.map {
+            it.getPizza()
+        }
+
+        locations.forEach {
+            addPizzaIfNoneExists(it)
+        }
     }
 
     /**
@@ -187,7 +206,7 @@ class PizzaRepository private constructor(context: Context) {
     }
 
     @VisibleForTesting
-    fun clearDB(){
+    fun clearDB() {
         pizzaDatabase.clearAllTables()
     }
 

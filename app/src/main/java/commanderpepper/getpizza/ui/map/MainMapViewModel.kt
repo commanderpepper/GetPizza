@@ -10,6 +10,8 @@ import commanderpepper.getpizza.room.entity.PizzaFav
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.math.abs
@@ -17,6 +19,7 @@ import kotlin.math.abs
 class MainMapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = PizzaRepository.getInstance()
+    val pizzaFavFlow = repository.getPizzaShopFlow()
 
     val locationChannel = ConflatedBroadcastChannel<LatLng>().also {
         it.offer(LatLng(0.0, 0.0))

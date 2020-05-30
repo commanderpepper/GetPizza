@@ -143,8 +143,10 @@ class MapActivity : AppCompatActivity(),
      * When user long clicks on the info window it will go to a Google Search or a Web Search
      */
     private fun handleLongInfoWindowClick(marker: Marker) {
-        val pair = marker.tag as Pair<Boolean, PizzaFav>
-        val text = pair.second.name + " " + pair.second.address
+        val pizzaFav = marker.tag as PizzaFav
+        val text = "${pizzaFav.name} ${pizzaFav.address}"
+//        val pair = marker.tag as Pair<Boolean, PizzaFav>
+//        val text = pair.second.name + " " + pair.second.address
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_WEB_SEARCH
             putExtra(SearchManager.QUERY, text)
@@ -163,6 +165,7 @@ class MapActivity : AppCompatActivity(),
 
         markerMap[pizzaFav.id]!!.remove()
         markerMap.remove(pizzaFav.id)
+//        pizzaSet.remove(pizzaFav)
 
         // Check if this is a favorite or not. If this is not a favorite, make it one.
         if (pizzaFav.favorite == 1) {
@@ -218,18 +221,27 @@ class MapActivity : AppCompatActivity(),
 
         /**
          * Called every time the location in the viewmodel is updated.
-         * When the view model updates the location is not inside the activity, I guess this is a decent separation of concerns
+         * When the view model updates, the location is not inside the activity, I guess this is a decent separation of concerns
          */
         mainMapViewModel.locationChannel.asFlow()
             .onEach { userLocation ->
                 Timber.d("UserLocation B: $userLocation")
 
-                val map = mainMapViewModel.getPizzaUsingLocation(userLocation)
-                    .map { it.id to it }.toMap().toMutableMap()
-                pizzaMap.clear()
-                pizzaMap.putAll(map)
-                makeMarkersFromPizzaFav()
+                mainMapViewModel.getPizzaUsingLocation(userLocation).onEach {
+                    if(!pizzaMap.containsKey(it.id)){
+                        addMarker(it)
+                    }
+//                    if (!pizzaSet.contains(it)) {
+//                        pizzaSet.add(it)
+//                        addMarker(it)
+//                    }
+                }
 
+//                val map = mainMapViewModel.getPizzaUsingLocation(userLocation)
+//                    .map { it.id to it }.toMap().toMutableMap()
+//                pizzaMap.clear()
+//                pizzaMap.putAll(map)
+//                makeMarkersFromPizzaFav()
             }.launchIn(lifecycleScope)
     }
 
@@ -239,10 +251,10 @@ class MapActivity : AppCompatActivity(),
      */
     //TODO: Work on this, clearing the map marker is too much and leads to janky UI
     private fun makeMarkersFromPizzaFav() {
-        markerMap.forEach {
-            it.value!!.remove()
-        }
-        markerMap.clear()
+//        markerMap.forEach {
+//            it.value!!.remove()
+//        }
+//        markerMap.clear()
         pizzaMap.forEach { pizzafav ->
             if (markerMap[pizzafav.key] == null) {
                 addMarker(pizzafav.value)

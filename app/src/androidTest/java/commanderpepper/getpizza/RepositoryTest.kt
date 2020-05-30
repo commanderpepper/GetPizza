@@ -259,4 +259,27 @@ class RepositoryTest {
         pizzaRepository.addPizza(testPizzaLat)
         pizzaRepository.addPizza(testPizzaLng)
     }
+
+    @Test
+    fun test_conflated_channel() = runBlocking {
+
+        val job = SupervisorJob()
+        val scope = CoroutineScope(job + Dispatchers.Main)
+        val ui_pizza_flow = pizzaRepository.getPizzaShopFlow()
+
+        val fav_pizza = PizzaFav(
+            "88",
+            100.0,
+            100.0,
+            "place",
+            "name",
+            1
+        )
+
+        ui_pizza_flow.onEach {
+            assertThat(it.name, CoreMatchers.equalTo(fav_pizza.name))
+        }.launchIn(scope)
+
+        pizzaRepository.addPizzaIfNoneExists(fav_pizza)
+    }
 }
