@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
@@ -65,7 +66,9 @@ class MapActivity : AppCompatActivity(),
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var drawer: DrawerLayout
-    private lateinit var mainMapViewModel: MainMapViewModel
+
+    val mainMapViewModel: MainMapViewModel by viewModels()
+
     private lateinit var userInitialLatLng: LatLng
     private lateinit var navView: NavigationView
 
@@ -89,7 +92,7 @@ class MapActivity : AppCompatActivity(),
         mapFragment.getMapAsync(this)
 
         setupLocationClient()
-        setUpViewModel()
+//        setUpViewModel()
 
         drawer = binding.MainActivityDrawerLayout
         navView = binding.mainNavView
@@ -126,6 +129,9 @@ class MapActivity : AppCompatActivity(),
                 this
             )
         )
+
+        setUpViewModel()
+
         map.setOnInfoWindowClickListener {
             handleInfoWindowClick(it)
         }
@@ -215,34 +221,42 @@ class MapActivity : AppCompatActivity(),
     @InternalCoroutinesApi
     private fun setUpViewModel() {
 
-        val mapActivity = this
+//        val mapActivity = this
+//
+//        mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
 
-        mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
+        mainMapViewModel.pizzaFavFlow.onEach {
+            if (!pizzaMap.containsKey(it.id)) {
+                addMarker(it)
+            }
+        }.launchIn(
+            lifecycleScope
+        )
 
         /**
          * Called every time the location in the viewmodel is updated.
          * When the view model updates, the location is not inside the activity, I guess this is a decent separation of concerns
          */
-        mainMapViewModel.locationChannel.asFlow()
-            .onEach { userLocation ->
-                Timber.d("UserLocation B: $userLocation")
-
-                mainMapViewModel.getPizzaUsingLocation(userLocation).onEach {
-                    if(!pizzaMap.containsKey(it.id)){
-                        addMarker(it)
-                    }
+//        mainMapViewModel.locationChannel.asFlow()
+//            .onEach { userLocation ->
+//                Timber.d("UserLocation B: $userLocation")
+//
+//                mainMapViewModel.getPizzaUsingLocation(userLocation).onEach {
+//                    if(!pizzaMap.containsKey(it.id)){
+//                        addMarker(it)
+//                    }
 //                    if (!pizzaSet.contains(it)) {
 //                        pizzaSet.add(it)
 //                        addMarker(it)
 //                    }
-                }
+//                }
 
 //                val map = mainMapViewModel.getPizzaUsingLocation(userLocation)
 //                    .map { it.id to it }.toMap().toMutableMap()
 //                pizzaMap.clear()
 //                pizzaMap.putAll(map)
 //                makeMarkersFromPizzaFav()
-            }.launchIn(lifecycleScope)
+//            }.launchIn(lifecycleScope)
     }
 
     /**

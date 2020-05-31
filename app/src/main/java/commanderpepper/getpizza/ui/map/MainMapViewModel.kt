@@ -36,7 +36,8 @@ class MainMapViewModel(application: Application) : AndroidViewModel(application)
                     locationChannel.asFlow().first()
                 )
             ) {
-                repository.getPizzas(latlng)
+//                repository.getPizzas(latlng)
+                repository.requestForMorePizzaFavs(latlng)
                 locationChannel.offer(latlng)
             }
         }

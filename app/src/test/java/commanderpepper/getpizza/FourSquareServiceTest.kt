@@ -36,7 +36,7 @@ class FourSquareServiceTest {
         withContext(Dispatchers.IO) {
             search = client!!.searchForPizzas("40.755657,-73.587624", "4bf58dd8d48988d1ca941735")
         }
-        val venueFlow = search!!.response.venues.asFlow().map {
+        search!!.response.venues.asFlow().map {
             it.location.lat to it.location.lng
         }.collect {
             Assert.assertTrue(it != null)
