@@ -54,13 +54,17 @@ class PizzaRepository private constructor(context: Context) {
 
     private val pizzaShops = ConflatedBroadcastChannel<PizzaFav>()
 
-    private val databasePizzaFav = pizzaDatabase.pizzaDao().getFlowOfFavorites().onEach {
-        it.forEach { pizzaFav -> pizzaShops.offer(pizzaFav) }
-    }.launchIn(scope)
+    private val databasePizzaFav = pizzaDatabase.pizzaDao().getFlowOfFavorites()
 
-    private val userLocations = mutableSetOf<LatLng>()
+    init {
+        databasePizzaFav.onEach {
+            it.forEach { pizzaFav ->
+                pizzaShops.offer(pizzaFav)
+            }
+        }.launchIn(scope)
+    }
 
-
+    //Gives an observable flow of pizza to whatever.
     fun getPizzaShopFlow(): Flow<PizzaFav> {
         return pizzaShops.asFlow()
     }
@@ -77,6 +81,7 @@ class PizzaRepository private constructor(context: Context) {
 
         locations.forEach {
             addPizzaIfNoneExists(it)
+            pizzaShops.offer(it)
         }
     }
 

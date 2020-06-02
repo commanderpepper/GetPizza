@@ -1,8 +1,6 @@
 package commanderpepper.getpizza.ui.map
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import commanderpepper.getpizza.repository.PizzaRepository
@@ -10,39 +8,50 @@ import commanderpepper.getpizza.room.entity.PizzaFav
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.math.abs
 
-class MainMapViewModel(application: Application) : AndroidViewModel(application) {
+class MainMapViewModel : ViewModel() {
 
-    private val repository = PizzaRepository.getInstance()
-    val pizzaFavFlow = repository.getPizzaShopFlow()
+    var hasLatestUserLocation = false
+        private set
 
-    val locationChannel = ConflatedBroadcastChannel<LatLng>().also {
-        it.offer(LatLng(0.0, 0.0))
+    private fun userHasSuppliedLocation() {
+        hasLatestUserLocation = true
     }
 
-    fun updateLocationLiveData(latlng: LatLng) {
-        viewModelScope.launch {
-            Timber.d("The camera moved")
-            Timber.d("Parameter is $latlng")
-            Timber.d("Channel is ${locationChannel.asFlow().first()}")
+    private val repository = PizzaRepository.getInstance()
+    val repoPizzaFlow = repository.getPizzaShopFlow()
 
-            if (locationChannel.asFlow().first() == LatLng(0.0, 0.0) || compareLatLng(
-                    latlng,
-                    locationChannel.asFlow().first()
-                )
-            ) {
-//                repository.getPizzas(latlng)
-                repository.requestForMorePizzaFavs(latlng)
-                locationChannel.offer(latlng)
-            }
+    // Location channel used to store the user's location.
+    // NYC is offered as a default value
+    val locationChannel = ConflatedBroadcastChannel<LatLng>().also {
+        it.offer(LatLng(40.730, -73.935))
+    }
+
+    fun updateLocation(latlng: LatLng) {
+        viewModelScope.launch {
+            locationChannel.offer(latlng)
+            requestForMorePizzaShops(locationChannel.value)
+            userHasSuppliedLocation()
         }
     }
 
+    private suspend fun requestForMorePizzaShops(latlng: LatLng) {
+        repository.requestForMorePizzaFavs(latlng)
+    }
+
+    fun requestForMorePizzaShops(){
+        viewModelScope.launch {
+            val latlng = locationChannel.value
+            requestForMorePizzaShops(latlng)
+        }
+    }
+
+    /**
+     * Adds a pizza to the local repo
+     */
     fun addPizza(pizzaFav: PizzaFav) {
         viewModelScope.launch {
             repository.addPizza(pizzaFav)

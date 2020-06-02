@@ -6,14 +6,12 @@ import android.app.SearchManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -32,7 +30,6 @@ import commanderpepper.getpizza.ui.favorites.FavoritesActivity
 import commanderpepper.getpizza.room.entity.PizzaFav
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
@@ -124,13 +121,12 @@ class MapActivity : AppCompatActivity(),
     @InternalCoroutinesApi
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+
         map.setInfoWindowAdapter(
             PizzaInfoWindowAdapter(
                 this
             )
         )
-
-        setUpViewModel()
 
         map.setOnInfoWindowClickListener {
             handleInfoWindowClick(it)
@@ -140,9 +136,11 @@ class MapActivity : AppCompatActivity(),
         }
 
         getCurrentLocation()
+        setUpViewModel()
         setupMapListeners()
 
         map.setOnCameraIdleListener(this)
+        mainMapViewModel.requestForMorePizzaShops()
     }
 
     /**
@@ -151,8 +149,6 @@ class MapActivity : AppCompatActivity(),
     private fun handleLongInfoWindowClick(marker: Marker) {
         val pizzaFav = marker.tag as PizzaFav
         val text = "${pizzaFav.name} ${pizzaFav.address}"
-//        val pair = marker.tag as Pair<Boolean, PizzaFav>
-//        val text = pair.second.name + " " + pair.second.address
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_WEB_SEARCH
             putExtra(SearchManager.QUERY, text)
@@ -165,13 +161,11 @@ class MapActivity : AppCompatActivity(),
      * Also can remove favorites.
      */
     private fun handleInfoWindowClick(marker: Marker) {
-//        val pair = marker.tag as Pair<Boolean, PizzaFav>
-//        val favoriteStatus = pair.first
         val pizzaFav = marker.tag as PizzaFav
 
         markerMap[pizzaFav.id]!!.remove()
         markerMap.remove(pizzaFav.id)
-//        pizzaSet.remove(pizzaFav)
+        pizzaMap.remove(pizzaFav.id)
 
         // Check if this is a favorite or not. If this is not a favorite, make it one.
         if (pizzaFav.favorite == 1) {
@@ -182,9 +176,7 @@ class MapActivity : AppCompatActivity(),
             mainMapViewModel.addPizza(pizzaFav.apply {
                 favorite = 1
             })
-
         }
-        addMarker(pizzaFav)
     }
 
     /**
@@ -211,64 +203,34 @@ class MapActivity : AppCompatActivity(),
      * Called inside onCameraIdle
      */
     private fun updateViewModel(newLocation: LatLng) {
-        mainMapViewModel.updateLocationLiveData(newLocation)
+        mainMapViewModel.updateLocation(newLocation)
     }
 
     /**
-     * Makes the view model
+     * This is where the code draws the markers.
      */
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     private fun setUpViewModel() {
 
-//        val mapActivity = this
-//
-//        mainMapViewModel = ViewModelProviders.of(mapActivity).get(MainMapViewModel::class.java)
-
-        mainMapViewModel.pizzaFavFlow.onEach {
+        /**
+         * Every time a pizza shop is given, draw it.
+         */
+        mainMapViewModel.repoPizzaFlow.onEach {
             if (!pizzaMap.containsKey(it.id)) {
-                addMarker(it)
+                pizzaMap[it.id] = it
+                makeMarkersFromPizzaFav()
             }
         }.launchIn(
             lifecycleScope
         )
-
-        /**
-         * Called every time the location in the viewmodel is updated.
-         * When the view model updates, the location is not inside the activity, I guess this is a decent separation of concerns
-         */
-//        mainMapViewModel.locationChannel.asFlow()
-//            .onEach { userLocation ->
-//                Timber.d("UserLocation B: $userLocation")
-//
-//                mainMapViewModel.getPizzaUsingLocation(userLocation).onEach {
-//                    if(!pizzaMap.containsKey(it.id)){
-//                        addMarker(it)
-//                    }
-//                    if (!pizzaSet.contains(it)) {
-//                        pizzaSet.add(it)
-//                        addMarker(it)
-//                    }
-//                }
-
-//                val map = mainMapViewModel.getPizzaUsingLocation(userLocation)
-//                    .map { it.id to it }.toMap().toMutableMap()
-//                pizzaMap.clear()
-//                pizzaMap.putAll(map)
-//                makeMarkersFromPizzaFav()
-//            }.launchIn(lifecycleScope)
     }
 
+
     /**
-     * Removes all the existing markers, clears the marker map
-     * Then adds the pizza favs as makers and makes those markers on the map
+     * If a marker is not inside the map, add it.
      */
-    //TODO: Work on this, clearing the map marker is too much and leads to janky UI
     private fun makeMarkersFromPizzaFav() {
-//        markerMap.forEach {
-//            it.value!!.remove()
-//        }
-//        markerMap.clear()
         pizzaMap.forEach { pizzafav ->
             if (markerMap[pizzafav.key] == null) {
                 addMarker(pizzafav.value)
@@ -277,6 +239,8 @@ class MapActivity : AppCompatActivity(),
     }
 
     private fun addMarker(pizzaFav: PizzaFav) {
+        val isFav = pizzaFav.favorite == 1
+
         markerMap[pizzaFav.id] = map.addMarker(
             MarkerOptions().position(
                 LatLng(
@@ -284,55 +248,18 @@ class MapActivity : AppCompatActivity(),
                     pizzaFav.lng
                 )
             )
-                .alpha(defaultTransparency)
+                .alpha(getAlpha(isFav))
                 .title(pizzaFav.name)
                 .snippet(pizzaFav.address)
+                .icon(
+                    if (isFav) BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                    else BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                )
         )
         markerMap[pizzaFav.id]!!.tag = pizzaFav
     }
 
-    /**
-     * Add a default marker to the map
-     * Default markers red and are slightly transparent
-     */
-    private fun addDefaultMarkerFromPizzaFav(pizzaFav: PizzaFav) {
-        markerMap[pizzaFav.id] = map.addMarker(
-            MarkerOptions()
-                .position(
-                    LatLng(
-                        pizzaFav.lat,
-                        pizzaFav.lng
-                    )
-                )
-                .alpha(defaultTransparency)
-                .title(pizzaFav.name)
-                .snippet(pizzaFav.address)
-        )
-        markerMap[pizzaFav.id]!!.tag = Pair(pizzaFav.favorite == 1, pizzaFav)
-    }
-
-    /**
-     * Add a favorite marker to the map
-     * Fav markers are blue
-     */
-    private fun addFavoriteMarkerFromPizzaFav(pizzaFav: PizzaFav) {
-        markerMap[pizzaFav.id] = map.addMarker(
-            MarkerOptions()
-                .position(
-                    LatLng(
-                        pizzaFav.lat,
-                        pizzaFav.lng
-                    )
-                )
-                .title(pizzaFav.name)
-                .snippet(pizzaFav.address)
-                .icon(
-                    BitmapDescriptorFactory
-                        .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
-                )
-        )
-        markerMap[pizzaFav.id]!!.tag = Pair(pizzaFav.favorite == 1, pizzaFav)
-    }
+    private fun getAlpha(isFav: Boolean) = if (isFav) 1f else defaultTransparency
 
     /**
      * Calls stuff when the user interacts with the map features
@@ -370,9 +297,6 @@ class MapActivity : AppCompatActivity(),
                         zoom
                     )
                     map.moveCamera(cameraUpdate)
-                    // Update the view model
-//                    updateViewModel(latLng)
-
                 } else {
                     Timber.e("No location found")
                 }
@@ -390,8 +314,6 @@ class MapActivity : AppCompatActivity(),
     /**
      * Gets user initial location, should only be used when the app is starting up, inside onMapReady
      */
-    @ExperimentalCoroutinesApi
-    @InternalCoroutinesApi
     private fun getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -405,17 +327,7 @@ class MapActivity : AppCompatActivity(),
             fusedLocationClient.lastLocation.addOnCompleteListener {
                 val location = it.result
 
-                /**
-                 * If the returned location is not null and the location in the view model is 0,
-                 * then move the camera to the user's location
-                 */
-                Timber.d("Location channel value : ${mainMapViewModel.locationChannel.value}")
-
-                if (mainMapViewModel.locationChannel.value == LatLng(
-                        0.0,
-                        0.0
-                    ) && location != null
-                ) {
+                if (location != null && !mainMapViewModel.hasLatestUserLocation) {
                     val latLng = LatLng(location.latitude, location.longitude)
                     userInitialLatLng = latLng
                     val cameraUpdate =
@@ -427,6 +339,7 @@ class MapActivity : AppCompatActivity(),
                     updateViewModel(latLng)
                 } else {
                     Timber.e("No location found")
+                    Timber.e("Using the default location.")
                 }
             }
         }
