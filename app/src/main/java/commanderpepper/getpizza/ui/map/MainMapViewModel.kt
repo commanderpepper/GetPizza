@@ -6,8 +6,6 @@ import com.google.android.gms.maps.model.LatLng
 import commanderpepper.getpizza.repository.PizzaRepository
 import commanderpepper.getpizza.room.entity.PizzaFav
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.math.abs

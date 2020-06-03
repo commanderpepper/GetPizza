@@ -66,7 +66,6 @@ class MapActivity : AppCompatActivity(),
 
     val mainMapViewModel: MainMapViewModel by viewModels()
 
-    private lateinit var userInitialLatLng: LatLng
     private lateinit var navView: NavigationView
 
     private var markerMap = mutableMapOf<String, Marker?>()
@@ -87,9 +86,7 @@ class MapActivity : AppCompatActivity(),
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map_fragment) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
         setupLocationClient()
-//        setUpViewModel()
 
         drawer = binding.MainActivityDrawerLayout
         navView = binding.mainNavView
@@ -100,10 +97,8 @@ class MapActivity : AppCompatActivity(),
      * Handles user events in the drawer layout
      */
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        Timber.d(item.toString())
         when (item.itemId) {
             R.id.favorites -> {
-                Timber.d("Clicked on fav")
                 val intent = Intent(this, FavoritesActivity::class.java)
                 startActivityForResult(
                     intent,
@@ -122,12 +117,7 @@ class MapActivity : AppCompatActivity(),
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
-        map.setInfoWindowAdapter(
-            PizzaInfoWindowAdapter(
-                this
-            )
-        )
-
+        map.setInfoWindowAdapter(PizzaInfoWindowAdapter(this))
         map.setOnInfoWindowClickListener {
             handleInfoWindowClick(it)
         }
@@ -135,9 +125,9 @@ class MapActivity : AppCompatActivity(),
             handleLongInfoWindowClick(it)
         }
 
-        getCurrentLocation()
         setUpViewModel()
         setupMapListeners()
+        getCurrentLocation()
 
         map.setOnCameraIdleListener(this)
         mainMapViewModel.requestForMorePizzaShops()
@@ -212,7 +202,6 @@ class MapActivity : AppCompatActivity(),
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     private fun setUpViewModel() {
-
         /**
          * Every time a pizza shop is given, draw it.
          */
@@ -240,6 +229,7 @@ class MapActivity : AppCompatActivity(),
 
     private fun addMarker(pizzaFav: PizzaFav) {
         val isFav = pizzaFav.favorite == 1
+        Timber.d("Pizza Fav ${pizzaFav.name} status is $isFav")
 
         markerMap[pizzaFav.id] = map.addMarker(
             MarkerOptions().position(
@@ -329,17 +319,13 @@ class MapActivity : AppCompatActivity(),
 
                 if (location != null && !mainMapViewModel.hasLatestUserLocation) {
                     val latLng = LatLng(location.latitude, location.longitude)
-                    userInitialLatLng = latLng
+
                     val cameraUpdate =
                         CameraUpdateFactory.newLatLngZoom(
                             latLng,
                             zoom
                         )
                     map.moveCamera(cameraUpdate)
-                    updateViewModel(latLng)
-                } else {
-                    Timber.e("No location found")
-                    Timber.e("Using the default location.")
                 }
             }
         }

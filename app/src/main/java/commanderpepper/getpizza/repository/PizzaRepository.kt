@@ -30,6 +30,8 @@ private const val twoMileDistanceThreshold = 0.036363636
  */
 private const val quarterMileDistanceThreshold = 0.0045454545
 
+private const val oneMileDistanceThreshold = 0.0181818
+
 /**
  * Cache limit, if the number of pizza shops is less than the cache limit within a certain area then ask the network for more.
  */
@@ -47,7 +49,7 @@ class PizzaRepository private constructor(context: Context) {
      * The job is a SupervisorJob so that any cancellations in a child won't cancel a parent coroutine
      */
     private val job = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.IO + job)
+    private val scope = CoroutineScope(Dispatchers.Default + job)
 
     private val fourSquareService: FourSquareService = FourSquareService.create()
     private val pizzaDatabase = PizzaDatabase.getInstance(context)
@@ -70,17 +72,44 @@ class PizzaRepository private constructor(context: Context) {
     }
 
     suspend fun requestForMorePizzaFavs(latLng: LatLng) {
-        val searchResponse = fourSquareService.searchForPizzas(
-            latLng.concatString(),
-            categoryId
+        try {
+            val searchResponse = fourSquareService.searchForPizzas(
+                latLng.concatString(),
+                categoryId
+            )
+
+            val locations = searchResponse.response.venues.map {
+                it.getPizza()
+            }
+
+            locations.forEach {
+                addPizzaIfNoneExists(it)
+            }
+        } finally {
+            makeTheOffering(latLng)
+        }
+    }
+
+    /**
+     * Send the pizza shops in the local data base to the conflated broadcast channel. 
+     */
+    private suspend fun makeTheOffering(
+        latLng: LatLng,
+        threshold: Double = oneMileDistanceThreshold
+    ) {
+        val lowerLatBound = latLng.latitude - threshold
+        val upperLatBound = latLng.latitude + threshold
+        val lowerLngBound = latLng.longitude - threshold
+        val upperLngBound = latLng.longitude + threshold
+
+        val pizzers = pizzaDatabase.pizzaDao().getPizzasNearLocationUsingLatAndLng(
+            lowerLatBound,
+            upperLatBound,
+            lowerLngBound,
+            upperLngBound
         )
 
-        val locations = searchResponse.response.venues.map {
-            it.getPizza()
-        }
-
-        locations.forEach {
-            addPizzaIfNoneExists(it)
+        pizzers.forEach {
             pizzaShops.offer(it)
         }
     }
@@ -99,7 +128,10 @@ class PizzaRepository private constructor(context: Context) {
      */
     suspend fun addPizzaIfNoneExists(pizzaFav: PizzaFav) {
         scope.launch {
-            pizzaDatabase.pizzaDao().addPizzaFavIfNoneExists(pizzaFav)
+            //If the pizza shop does not exist, add it.
+            if (pizzaDatabase.pizzaDao().checkForPizzaFav(pizzaFav.id) == 0) {
+                pizzaDatabase.pizzaDao().addPizzaFav(pizzaFav)
+            }
         }
     }
 

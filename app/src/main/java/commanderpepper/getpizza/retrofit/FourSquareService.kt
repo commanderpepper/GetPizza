@@ -28,7 +28,7 @@ interface FourSquareService {
         @Query("client_secret")
         client_secret: String = Constants.CLIENT_SECRET,
         @Query("limit")
-        limit: Int = 100,
+        limit: Int = FourSquareService.limit,
         @Query("v")
         v: String = SimpleDateFormat("yyyyMMdd").format(Date())
     ): SearchResponse
@@ -55,8 +55,9 @@ interface FourSquareService {
     ): SearchResponse
 
     companion object {
-        fun create(): FourSquareService {
+        const val limit: Int = 50
 
+        fun create(): FourSquareService {
             val interceptor: HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
                 this.level = HttpLoggingInterceptor.Level.BODY
             }
