@@ -64,7 +64,7 @@ class MapActivity : AppCompatActivity(),
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var drawer: DrawerLayout
 
-    val mainMapViewModel: MainMapViewModel by viewModels()
+    private val mainMapViewModel: MainMapViewModel by viewModels()
 
     private lateinit var navView: NavigationView
 
@@ -153,9 +153,7 @@ class MapActivity : AppCompatActivity(),
     private fun handleInfoWindowClick(marker: Marker) {
         val pizzaFav = marker.tag as PizzaFav
 
-        markerMap[pizzaFav.id]!!.remove()
-        markerMap.remove(pizzaFav.id)
-        pizzaMap.remove(pizzaFav.id)
+        removePizzaFav(pizzaFav)
 
         // Check if this is a favorite or not. If this is not a favorite, make it one.
         if (pizzaFav.favorite == 1) {
@@ -167,6 +165,12 @@ class MapActivity : AppCompatActivity(),
                 favorite = 1
             })
         }
+    }
+
+    private fun removePizzaFav(pizzaFav: PizzaFav) {
+        markerMap[pizzaFav.id]!!.remove()
+        markerMap.remove(pizzaFav.id)
+        pizzaMap.remove(pizzaFav.id)
     }
 
     /**
@@ -186,6 +190,15 @@ class MapActivity : AppCompatActivity(),
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             updateViewModel(getCameraLatLng())
+            //Remove some farther pizza favs.
+            pizzaMap.filter {
+                mainMapViewModel.compareLatLng(
+                    LatLng(it.value.lat, it.value.lng),
+                    getCameraLatLng()
+                )
+            }.values.forEach {
+                removePizzaFav(it)
+            }
         }
     }
 
@@ -229,7 +242,6 @@ class MapActivity : AppCompatActivity(),
 
     private fun addMarker(pizzaFav: PizzaFav) {
         val isFav = pizzaFav.favorite == 1
-        Timber.d("Pizza Fav ${pizzaFav.name} status is $isFav")
 
         markerMap[pizzaFav.id] = map.addMarker(
             MarkerOptions().position(
@@ -386,6 +398,5 @@ class MapActivity : AppCompatActivity(),
 
     companion object {
         private const val REQUEST_LOCATION = 1
-        private const val TAG = "MapsActivity"
     }
 }

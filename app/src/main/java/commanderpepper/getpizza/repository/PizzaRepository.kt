@@ -21,16 +21,11 @@ import timber.log.Timber
 private const val categoryId = "4bf58dd8d48988d1ca941735"
 
 /**
- * About two miles in degrees if I did my math right.
+ * One degree is about 55 miles.
  */
-private const val twoMileDistanceThreshold = 0.036363636
-
-/**
- * About a quarter mile in degrees where one degree is around 55 miles.
- */
-private const val quarterMileDistanceThreshold = 0.0045454545
-
-private const val oneMileDistanceThreshold = 0.0181818
+const val oneMileDistanceThreshold = 0.0181818
+const val twoMileDistanceThreshold = 0.036363636
+const val threeMileDistanceThreshold = 0.054545454
 
 /**
  * Cache limit, if the number of pizza shops is less than the cache limit within a certain area then ask the network for more.
@@ -91,7 +86,7 @@ class PizzaRepository private constructor(context: Context) {
     }
 
     /**
-     * Send the pizza shops in the local data base to the conflated broadcast channel. 
+     * Send the pizza shops in the local data base to the conflated broadcast channel.
      */
     private suspend fun makeTheOffering(
         latLng: LatLng,
