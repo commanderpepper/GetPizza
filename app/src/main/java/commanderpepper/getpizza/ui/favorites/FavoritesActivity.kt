@@ -10,6 +10,7 @@ import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityFavoritesBinding
 import commanderpepper.getpizza.ui.favorites.recyclerview.FavoriteAdapter
 import kotlinx.android.synthetic.main.activity_favorites.view.*
+import kotlinx.android.synthetic.main.activity_map.view.*
 
 class FavoritesActivity : AppCompatActivity() {
 
@@ -33,5 +34,8 @@ class FavoritesActivity : AppCompatActivity() {
             layoutManager = viewManager as RecyclerView.LayoutManager?
             adapter = favAdapter
         }
+
+        val toolbar = binding.favToolbar
+        setSupportActionBar(toolbar)
     }
 }

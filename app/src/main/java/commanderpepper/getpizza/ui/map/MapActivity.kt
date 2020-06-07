@@ -6,7 +6,9 @@ import android.app.SearchManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.Gravity
 import android.view.MenuItem
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -26,8 +28,9 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
-import commanderpepper.getpizza.ui.favorites.FavoritesActivity
 import commanderpepper.getpizza.room.entity.PizzaFav
+import commanderpepper.getpizza.ui.favorites.FavoritesActivity
+import kotlinx.android.synthetic.main.activity_map.view.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
@@ -91,6 +94,33 @@ class MapActivity : AppCompatActivity(),
         drawer = binding.MainActivityDrawerLayout
         navView = binding.mainNavView
         navView.setNavigationItemSelectedListener(this)
+
+        if(drawer.isDrawerOpen(Gravity.LEFT)){
+            drawer.closeDrawer(Gravity.LEFT)
+        }
+
+        val toolbar = binding.MapConstraintLayout.toolbar
+        setSupportActionBar(toolbar)
+        val actionBar = supportActionBar
+
+        actionBar?.let{
+            it.setHomeAsUpIndicator(R.drawable.pizza_white)
+            it.setDisplayHomeAsUpEnabled(true)
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                if(drawer.isDrawerOpen(Gravity.LEFT)){
+                    drawer.closeDrawer(Gravity.LEFT)
+                }
+                else{
+                    drawer.openDrawer(Gravity.LEFT)
+                }
+            }
+        }
+        return true
     }
 
     /**
@@ -190,15 +220,19 @@ class MapActivity : AppCompatActivity(),
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             updateViewModel(getCameraLatLng())
-            //Remove some farther pizza favs.
-            pizzaMap.filter {
-                mainMapViewModel.compareLatLng(
-                    LatLng(it.value.lat, it.value.lng),
-                    getCameraLatLng()
-                )
-            }.values.forEach {
-                removePizzaFav(it)
-            }
+            removeMarkers()
+        }
+    }
+
+    private fun removeMarkers() {
+        //Remove some farther pizza favs.
+        pizzaMap.filter {
+            mainMapViewModel.compareLatLng(
+                LatLng(it.value.lat, it.value.lng),
+                getCameraLatLng()
+            )
+        }.values.forEach {
+            removePizzaFav(it)
         }
     }
 
@@ -227,7 +261,6 @@ class MapActivity : AppCompatActivity(),
             lifecycleScope
         )
     }
-
 
     /**
      * If a marker is not inside the map, add it.
@@ -375,6 +408,12 @@ class MapActivity : AppCompatActivity(),
      */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
+        //close the drawer if it is open
+        val drawer :DrawerLayout = findViewById(R.id.MainActivityDrawerLayout)
+        if(drawer.isDrawerOpen(Gravity.LEFT)){
+            drawer.closeDrawer(Gravity.LEFT)
+        }
         // Check which request we're responding to
         if (requestCode == REQUEST_FAV) {
             // Make sure the request was successful

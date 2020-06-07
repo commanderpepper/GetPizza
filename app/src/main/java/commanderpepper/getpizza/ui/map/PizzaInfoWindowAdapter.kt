@@ -24,6 +24,10 @@ class PizzaInfoWindowAdapter(private val context: Activity) : GoogleMap.InfoWind
         contents.findViewById<TextView>(R.id.title).text = marker?.title ?: ""
         contents.findViewById<TextView>(R.id.address).text = marker?.snippet ?: ""
 
+        contents.findViewById<ImageView>(R.id.favorite).setOnClickListener {
+            Timber.d("Favorite clicked")
+        }
+
         val pizzaFav = marker?.tag as PizzaFav
 
         if (pizzaFav.favorite == 0) {
@@ -41,27 +45,6 @@ class PizzaInfoWindowAdapter(private val context: Activity) : GoogleMap.InfoWind
                 )
             )
         }
-
-//        val pair: Pair<Boolean, Venue> = marker?.tag as Pair<Boolean, Venue>
-//
-//        Timber.d(pair.first.toString())
-//
-//        if (pair.first) {
-//            contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
-//                ContextCompat.getDrawable(
-//                    context,
-//                    android.R.drawable.star_big_on
-//                )
-//            )
-//        } else {
-//            contents.findViewById<ImageView>(R.id.favorite).setImageDrawable(
-//                ContextCompat.getDrawable(
-//                    context,
-//                    android.R.drawable.star_big_off
-//                )
-//            )
-//        }
-
 
         return contents
     }

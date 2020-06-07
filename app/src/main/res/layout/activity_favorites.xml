@@ -13,10 +13,22 @@
             android:layout_height="match_parent"
             tools:context=".ui.favorites.FavoritesActivity">
 
+        <androidx.appcompat.widget.Toolbar
+                android:id="@+id/fav_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:background="@color/colorPrimary"
+                app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
         <ScrollView
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/fav_toolbar"
                 android:id="@+id/scrollView2"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="0dp">
 
             <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/fav_list"
@@ -32,8 +44,8 @@
                 android:layout_marginTop="8dp"
                 android:text="@string/add_pizza_shops"
                 android:visibility="invisible"
-                app:layout_constraintStart_toStartOf="@+id/scrollView2"
-                app:layout_constraintTop_toTopOf="@+id/scrollView2" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/fav_toolbar" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
