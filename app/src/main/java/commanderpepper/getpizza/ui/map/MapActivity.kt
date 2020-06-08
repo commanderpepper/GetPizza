@@ -3,12 +3,15 @@ package commanderpepper.getpizza.ui.map
 import android.Manifest
 import android.app.Activity
 import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MenuItem
-import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -21,10 +24,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.material.navigation.NavigationView
 import commanderpepper.getpizza.R
 import commanderpepper.getpizza.databinding.ActivityMapBinding
@@ -88,6 +88,7 @@ class MapActivity : AppCompatActivity(),
 
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map_fragment) as SupportMapFragment
+
         mapFragment.getMapAsync(this)
         setupLocationClient()
 
@@ -95,7 +96,7 @@ class MapActivity : AppCompatActivity(),
         navView = binding.mainNavView
         navView.setNavigationItemSelectedListener(this)
 
-        if(drawer.isDrawerOpen(Gravity.LEFT)){
+        if (drawer.isDrawerOpen(Gravity.LEFT)) {
             drawer.closeDrawer(Gravity.LEFT)
         }
 
@@ -103,7 +104,7 @@ class MapActivity : AppCompatActivity(),
         setSupportActionBar(toolbar)
         val actionBar = supportActionBar
 
-        actionBar?.let{
+        actionBar?.let {
             it.setHomeAsUpIndicator(R.drawable.pizza_white)
             it.setDisplayHomeAsUpEnabled(true)
         }
@@ -112,10 +113,9 @@ class MapActivity : AppCompatActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                if(drawer.isDrawerOpen(Gravity.LEFT)){
+                if (drawer.isDrawerOpen(Gravity.LEFT)) {
                     drawer.closeDrawer(Gravity.LEFT)
-                }
-                else{
+                } else {
                     drawer.openDrawer(Gravity.LEFT)
                 }
             }
@@ -226,10 +226,11 @@ class MapActivity : AppCompatActivity(),
 
     private fun removeMarkers() {
         //Remove some farther pizza favs.
+        val currentCameraLatLng = getCameraLatLng()
         pizzaMap.filter {
             mainMapViewModel.compareLatLng(
                 LatLng(it.value.lat, it.value.lng),
-                getCameraLatLng()
+                currentCameraLatLng
             )
         }.values.forEach {
             removePizzaFav(it)
@@ -275,6 +276,8 @@ class MapActivity : AppCompatActivity(),
 
     private fun addMarker(pizzaFav: PizzaFav) {
         val isFav = pizzaFav.favorite == 1
+        
+        val icon = getIcon(isFav)
 
         markerMap[pizzaFav.id] = map.addMarker(
             MarkerOptions().position(
@@ -286,15 +289,37 @@ class MapActivity : AppCompatActivity(),
                 .alpha(getAlpha(isFav))
                 .title(pizzaFav.name)
                 .snippet(pizzaFav.address)
-                .icon(
-                    if (isFav) BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
-                    else BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
-                )
+                .icon(icon)
         )
         markerMap[pizzaFav.id]!!.tag = pizzaFav
     }
 
+    private fun generateBitmapDescriptorFromRes(
+        context: Context, resId: Int
+    ): BitmapDescriptor? {
+        val drawable: Drawable = context.getDrawable(resId)!!
+        drawable.setBounds(
+            0,
+            0,
+            drawable.intrinsicWidth,
+            drawable.intrinsicHeight
+        )
+        val bitmap: Bitmap = Bitmap.createBitmap(
+            drawable.intrinsicWidth,
+            drawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        drawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
     private fun getAlpha(isFav: Boolean) = if (isFav) 1f else defaultTransparency
+
+    private fun getIcon(isFav: Boolean): BitmapDescriptor? {
+        return if (isFav) generateBitmapDescriptorFromRes(this, R.drawable.pizza_favortie)
+        else generateBitmapDescriptorFromRes(this, R.drawable.pizza_not_favortie)
+    }
 
     /**
      * Calls stuff when the user interacts with the map features
@@ -410,8 +435,8 @@ class MapActivity : AppCompatActivity(),
         super.onActivityResult(requestCode, resultCode, data)
 
         //close the drawer if it is open
-        val drawer :DrawerLayout = findViewById(R.id.MainActivityDrawerLayout)
-        if(drawer.isDrawerOpen(Gravity.LEFT)){
+        val drawer: DrawerLayout = findViewById(R.id.MainActivityDrawerLayout)
+        if (drawer.isDrawerOpen(Gravity.LEFT)) {
             drawer.closeDrawer(Gravity.LEFT)
         }
         // Check which request we're responding to
