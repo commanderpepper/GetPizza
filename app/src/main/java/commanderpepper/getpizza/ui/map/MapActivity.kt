@@ -276,7 +276,7 @@ class MapActivity : AppCompatActivity(),
 
     private fun addMarker(pizzaFav: PizzaFav) {
         val isFav = pizzaFav.favorite == 1
-        
+
         val icon = getIcon(isFav)
 
         markerMap[pizzaFav.id] = map.addMarker(
