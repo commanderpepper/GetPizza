@@ -80,9 +80,12 @@ class PizzaRepository private constructor(context: Context) {
             locations.forEach {
                 addPizzaIfNoneExists(it)
             }
+        } catch (e: Exception) {
+            Timber.e("Something went wrong, check it out will ya! ${e.localizedMessage}")
         } finally {
             makeTheOffering(latLng)
         }
+
     }
 
     /**
