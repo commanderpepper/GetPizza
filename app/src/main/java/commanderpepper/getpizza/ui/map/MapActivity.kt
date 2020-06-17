@@ -1,6 +1,7 @@
 package commanderpepper.getpizza.ui.map
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.SearchManager
 import android.content.Context
@@ -36,26 +37,6 @@ import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
-
-/**
- * Default zoom when using the map
- */
-private const val zoom = 15.0f
-
-/**
- * Favorite zoom when going to a favorite pizza shop
- */
-private const val favoriteZoom = 17.5f
-
-/**
- * Default transparency
- */
-private const val defaultTransparency = .85F
-
-/**
- * Favorite request code when going from the favorites activity back the map activity
- */
-private const val REQUEST_FAV = 0
 
 class MapActivity : AppCompatActivity(),
     OnMapReadyCallback,
@@ -110,6 +91,14 @@ class MapActivity : AppCompatActivity(),
         }
     }
 
+    @SuppressLint("MissingPermission")
+    override fun onStart() {
+        super.onStart()
+        if(hasFineLocationPermission() && this::map.isInitialized){
+            map.isMyLocationEnabled = true
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
@@ -145,6 +134,8 @@ class MapActivity : AppCompatActivity(),
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     override fun onMapReady(googleMap: GoogleMap) {
+        Timber.d("Is the Map ready?")
+
         map = googleMap
 
         map.setInfoWindowAdapter(PizzaInfoWindowAdapter(this))
@@ -214,14 +205,15 @@ class MapActivity : AppCompatActivity(),
     @ExperimentalCoroutinesApi
     @InternalCoroutinesApi
     override fun onCameraIdle() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            updateViewModel(getCameraLatLng())
-            removeMarkers()
-        }
+        updateViewModel(getCameraLatLng())
+        removeMarkers()
+    }
+
+    private fun hasFineLocationPermission(): Boolean {
+        return ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun removeMarkers() {
@@ -286,7 +278,7 @@ class MapActivity : AppCompatActivity(),
                     pizzaFav.lng
                 )
             )
-                .alpha(getAlpha(isFav))
+                .alpha(defaultTransparency)
                 .title(pizzaFav.name)
                 .snippet(pizzaFav.address)
                 .icon(icon)
@@ -314,7 +306,6 @@ class MapActivity : AppCompatActivity(),
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
-    private fun getAlpha(isFav: Boolean) = if (isFav) 1f else defaultTransparency
 
     private fun getIcon(isFav: Boolean): BitmapDescriptor? {
         return if (isFav) generateBitmapDescriptorFromRes(this, R.drawable.pizza_favortie)
@@ -340,14 +331,13 @@ class MapActivity : AppCompatActivity(),
      * Get the user's current location when pressing top right button
      * and update the location within the view model.
      */
+    @SuppressLint("MissingPermission")
     private fun getUserLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        // If the user location isn't known, request for it.
+        if(!hasFineLocationPermission()){
             requestLocationPermissions()
-        } else {
+        }
+        else {
             fusedLocationClient.lastLocation.addOnCompleteListener {
                 val location = it.result
                 if (location != null) {
@@ -374,14 +364,12 @@ class MapActivity : AppCompatActivity(),
     /**
      * Gets user initial location, should only be used when the app is starting up, inside onMapReady
      */
+    @SuppressLint("MissingPermission")
     private fun getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if(!hasFineLocationPermission()){
             requestLocationPermissions()
-        } else {
+        }
+        else {
             map.isMyLocationEnabled = true
 
             fusedLocationClient.lastLocation.addOnCompleteListener {
@@ -424,6 +412,8 @@ class MapActivity : AppCompatActivity(),
         Timber.d(grantResults.toString())
         if (grantResults.first() == PackageManager.PERMISSION_GRANTED) {
             getCurrentLocation()
+        } else {
+            Timber.d("Permission not granted")
         }
     }
 
@@ -461,6 +451,10 @@ class MapActivity : AppCompatActivity(),
     }
 
     companion object {
+        private const val REQUEST_FAV = 0
         private const val REQUEST_LOCATION = 1
+        private const val zoom = 15.0f
+        private const val favoriteZoom = 17.5f
+        private const val defaultTransparency = 1f
     }
 }
